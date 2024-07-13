@@ -63,3 +63,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default DashboardLayout;
+
+//	For fetching data from the API
+// useEffect(() => {
+// 	fetch("http://localhost:5077/", { method: "GET" })
+// 	.then((response) => response.json())
+// 	.then((data) => console.log(data))
+// 	.catch((error) => console.error("Error:", error));
+// });
