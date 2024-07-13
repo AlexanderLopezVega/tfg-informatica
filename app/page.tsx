@@ -1,4 +1,6 @@
-const Page = () => {
+import React from 'react';
+
+const Page: React.FC = () => {
   return (
     <>
     <h1>Hello, World!</h1>

@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from "react";
 import { Layout, Menu, Typography } from "antd/lib";
 import { UserOutlined, VideoCameraOutlined, UploadOutlined } from "@ant-design/icons";
