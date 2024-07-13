@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Layout, Menu, Typography } from "antd/lib";
 import { UserOutlined, VideoCameraOutlined, UploadOutlined } from "@ant-design/icons";
-import http from "http";
 import "antd/dist/reset.css";
 import "./dashboard.css";
 
@@ -12,19 +11,24 @@ const Dashboard: React.FC = () => {
 	const [selectedMenuItem, setSelectedMenuItem] = useState<string>("1");
 
 	useEffect(() => {
-		const options = {
-			hostname: "localhost",
-			port: 7048,
-			path: "",
-			headers: {
-				"access-control-allow-origin": "*"
-			},
-			agent: false,
-		};
+		// const options = {
+		// 	hostname: "localhost",
+		// 	port: 5077,
+		// 	path: "",
+		// 	headers: {
+		// 		"access-control-allow-origin": "*"
+		// 	},
+		// 	agent: false,
+		// };
 
-		http.get(options, (res: http.IncomingMessage) => {
-			console.log(res);
-		});
+		// http.get(options, (res: http.IncomingMessage) => {
+		// 	console.log(res);
+		// });
+
+		fetch("http://localhost:5077/", { method: "GET" })
+		.then((response) => response.json())
+		.then((data) => console.log(data))
+		.catch((error) => console.error("Error:", error));
 	});
 
 	const renderContent = () => {
