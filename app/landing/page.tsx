@@ -1,3 +1,4 @@
+'use client';
 import React from "react";
 import { Button, Card, Form, Input, Tabs, Typography } from "antd/lib";
 import { geekblue } from "@ant-design/colors";
