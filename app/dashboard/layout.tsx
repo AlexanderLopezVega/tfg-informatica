@@ -40,6 +40,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<Layout style={{ minHeight: "100vh" }}>
 			<Sider width={300} breakpoint="sm">
+				<Header style={{ padding: "20px 40px" }} className="header-shadow">
+					<Title level={4} style={{ color: "#fff", fontWeight: 400 }}>
+						Title goes here
+					</Title>
+				</Header>
 				<Menu
 					items={items}
 					theme="dark"
@@ -52,11 +57,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 			</Sider>
 
 			<Layout>
-				<Header style={{ background: "#fff", padding: 0 }} className="header-shadow">
-					<Title level={3}>Title goes here</Title>
+				<Header style={{ background: "#fff", padding: "0px 15px" }} className="header-shadow">
+					<Space>
+						<Button type="primary">Primary button</Button>
+						<Button>Default button</Button>
+					</Space>
 				</Header>
 
-				<Content style={{ marginTop: 10 }}>{children}</Content>
+				<Content style={{ marginTop: 10, padding: "15px" }}>{children}</Content>
 			</Layout>
 		</Layout>
 	);
