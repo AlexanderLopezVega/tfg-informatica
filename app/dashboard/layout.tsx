@@ -1,33 +1,33 @@
-"use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Layout, Menu, Typography } from "antd/lib";
-import { UserOutlined, VideoCameraOutlined, UploadOutlined } from "@ant-design/icons";
-import "antd/dist/reset.css";
-import "./dashboard.css";
+'use client';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Layout, Menu, Typography } from 'antd/lib';
+import { UserOutlined, VideoCameraOutlined, UploadOutlined } from '@ant-design/icons';
+import 'antd/dist/reset.css';
+import './dashboard.css';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 	const router = useRouter();
-	const [selectedMenuItem, setSelectedMenuItem] = useState<string>("1");
+	const [selectedMenuItem, setSelectedMenuItem] = useState<string>('1');
 	const items = [
 		{
-			key: "search",
-			label: "Search",
+			key: 'search',
+			label: 'Search',
 			icon: <VideoCameraOutlined />,
 			value: <>Search</>,
 		},
 		{
-			key: "library",
-			label: "My Library",
+			key: 'library',
+			label: 'My Library',
 			icon: <UserOutlined />,
 			value: <>My Library</>,
 		},
 		{
-			key: "upload",
-			label: "Upload",
+			key: 'upload',
+			label: 'Upload',
 			icon: <UploadOutlined />,
 			value: <>Upload</>,
 		},

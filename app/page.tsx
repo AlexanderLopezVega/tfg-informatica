@@ -1,10 +1,10 @@
 'use client';
-import React from "react";
-import { Button, Card, Form, Input, Tabs, Typography } from "antd/lib";
-import { geekblue } from "@ant-design/colors";
-import type { TabsProps } from "antd";
-import "antd/dist/reset.css";
-import "./login.css";
+import React from 'react';
+import { Button, Card, Form, Input, Tabs, Typography } from 'antd/lib';
+import { geekblue } from '@ant-design/colors';
+import type { TabsProps } from 'antd';
+import 'antd/dist/reset.css';
+import './login.css';
 
 const { Title } = Typography;
 
@@ -12,7 +12,7 @@ const LoginForm = () => {
 	const [form] = Form.useForm();
 
 	const onFinish = (values: any) => {
-		console.log("Login success:", values);
+		console.log('Login success:', values);
 	};
 
 	return (
@@ -38,7 +38,7 @@ const RegisterForm = () => {
 	const [form] = Form.useForm();
 
 	const onFinish = (values: any) => {
-		console.log("Register success:", values);
+		console.log('Register success:', values);
 	};
 
 	return (
@@ -56,13 +56,13 @@ const RegisterForm = () => {
 				dependencies={["password"]}
 				hasFeedback
 				rules={[
-					{ required: true, message: "Please confirm your password!" },
+					{ required: true, message: 'Please confirm your password!' },
 					({ getFieldValue }) => ({
 						validator(_: any, value: string) {
-							if (!value || getFieldValue("password") === value) {
+							if (!value || getFieldValue('password') === value) {
 								return Promise.resolve();
 							}
-							return Promise.reject(new Error("The two passwords do not match!"));
+							return Promise.reject(new Error('The two passwords do not match!'));
 						},
 					}),
 				]}
@@ -80,15 +80,15 @@ const RegisterForm = () => {
 };
 
 const Login: React.FC = () => {
-	const items: TabsProps["items"] = [
+	const items: TabsProps['items'] = [
 		{
-			key: "login",
-			label: "Login",
+			key: 'login',
+			label: 'Login',
 			children: <LoginForm />,
 		},
 		{
-			key: "register",
-			label: "Register",
+			key: 'register',
+			label: 'Register',
 			children: <RegisterForm />,
 		},
 	];
