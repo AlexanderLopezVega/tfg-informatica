@@ -1,9 +1,9 @@
 'use client';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button, Layout, Menu, Space, Typography } from 'antd/lib';
-import { UserOutlined, VideoCameraOutlined, UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
+import { Button, Layout, Menu, Space, Typography } from 'antd/lib';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import './dashboard.css';
 
 const { Header, Sider, Content } = Layout;
@@ -31,6 +31,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 			icon: <UploadOutlined />,
 			value: <>Upload</>,
 		},
+		{
+			key: 'renderer',
+			label: 'renderer',
+			icon: <UploadOutlined />,
+			value: <>Upload</>,
+		}
 	];
 
 	const onMenuPageSelected = (key: string) => {
