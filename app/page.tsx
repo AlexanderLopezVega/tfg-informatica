@@ -1,22 +1,48 @@
-'use client';
-import React from 'react';
-import { Button, Card, Form, Input, Tabs, Typography } from 'antd/lib';
-import { geekblue } from '@ant-design/colors';
-import type { TabsProps } from 'antd';
-import 'antd/dist/reset.css';
-import './login.css';
+"use client";
+
+import type { TabsProps } from "antd";
+import { useRouter } from "next/navigation";
+import { storeToken } from "./actions";
+import React from "react";
+import { Button, Card, Form, Input, Tabs, Typography } from "antd/lib";
+import { geekblue } from "@ant-design/colors";
+import "antd/dist/reset.css";
+import "./login.css";
 
 const { Title } = Typography;
 
 const LoginForm = () => {
-	const [form] = Form.useForm();
+	const [formData] = Form.useForm();
+	const router = useRouter();
 
-	const onFinish = (values: any) => {
-		console.log('Login success:', values);
+	const onFinish = async (values: any) => {
+		//	Post login request
+		const input = "http://localhost:5047/api/auth/login";
+		const init = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				username: values.username,
+				passwordHash: values.password,
+			}),
+		};
+
+		fetch(input, init)
+			.then((data) => {
+				if (data.ok)
+					data.json().then((data) => {
+						storeToken(data).then(() => router.push("dashboard"));
+					});
+			})
+			.catch((error) => {
+				console.log(error);
+			});
 	};
 
 	return (
-		<Form form={form} name="login" onFinish={onFinish}>
+		<Form form={formData} name="login" onFinish={onFinish}>
 			<Form.Item name="username" rules={[{ required: true, message: "Please input your username" }]}>
 				<Input placeholder="Username"></Input>
 			</Form.Item>
@@ -36,9 +62,31 @@ const LoginForm = () => {
 
 const RegisterForm = () => {
 	const [form] = Form.useForm();
+	const router = useRouter();
 
-	const onFinish = (values: any) => {
-		console.log('Register success:', values);
+	const onFinish = async (values: any) => {
+		//	Post register request
+		const url = "http://localhost:5047/api/auth/register";
+		const init = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				username: values.username,
+				passwordHash: values.password,
+			}),
+		};
+
+		fetch(url, init)
+			.then((data) => {
+				data.json().then((data) => {
+					storeToken(data).then(() => router.push("dashboard"));
+				});
+			})
+			.catch((error) => {
+				console.log(error);
+			});
 	};
 
 	return (
@@ -56,13 +104,13 @@ const RegisterForm = () => {
 				dependencies={["password"]}
 				hasFeedback
 				rules={[
-					{ required: true, message: 'Please confirm your password!' },
+					{ required: true, message: "Please confirm your password!" },
 					({ getFieldValue }) => ({
 						validator(_: any, value: string) {
-							if (!value || getFieldValue('password') === value) {
+							if (!value || getFieldValue("password") === value) {
 								return Promise.resolve();
 							}
-							return Promise.reject(new Error('The two passwords do not match!'));
+							return Promise.reject(new Error("The two passwords do not match!"));
 						},
 					}),
 				]}
@@ -80,21 +128,21 @@ const RegisterForm = () => {
 };
 
 const Login: React.FC = () => {
-	const items: TabsProps['items'] = [
+	const items: TabsProps["items"] = [
 		{
-			key: 'login',
-			label: 'Login',
+			key: "login",
+			label: "Login",
 			children: <LoginForm />,
 		},
 		{
-			key: 'register',
-			label: 'Register',
+			key: "register",
+			label: "Register",
 			children: <RegisterForm />,
 		},
 	];
 
 	return (
-		<div className="login-page" style={{backgroundColor: geekblue[0]}}>
+		<div className="login-page" style={{ backgroundColor: geekblue[0] }}>
 			<Card className="card-shadow">
 				<Title level={2}>Rock samples app</Title>
 				<Tabs defaultActiveKey="login" items={items}></Tabs>

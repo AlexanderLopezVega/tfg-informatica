@@ -1,9 +1,9 @@
 'use client';
-import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import 'antd/dist/reset.css';
-import { Button, Layout, Menu, Space, Typography } from 'antd/lib';
-import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
+import { Button, Layout, Menu, Space, Typography } from 'antd/lib';
+import 'antd/dist/reset.css';
 import './dashboard.css';
 
 const { Header, Sider, Content } = Layout;
@@ -33,8 +33,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 		},
 		{
 			key: 'renderer',
-			label: 'renderer',
-			icon: <UploadOutlined />,
+			label: 'Renderer',
 			value: <>Upload</>,
 		}
 	];
