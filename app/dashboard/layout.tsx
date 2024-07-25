@@ -1,41 +1,40 @@
-'use client';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { Button, Layout, Menu, Space, Typography } from 'antd/lib';
-import 'antd/dist/reset.css';
-import './dashboard.css';
+"use client";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { UploadOutlined, UserOutlined, SearchOutlined } from "@ant-design/icons";
+import { Button, Layout, Menu, Space, Typography } from "antd/lib";
+import "antd/dist/reset.css";
+import "./dashboard.css";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 	const router = useRouter();
-	const [selectedMenuItem, setSelectedMenuItem] = useState<string>('1');
 	const items = [
 		{
-			key: 'search',
-			label: 'Search',
-			icon: <VideoCameraOutlined />,
+			key: "search",
+			label: "Search",
+			icon: <SearchOutlined />,
 			value: <>Search</>,
 		},
 		{
-			key: 'library',
-			label: 'My Library',
+			key: "library",
+			label: "My Library",
 			icon: <UserOutlined />,
 			value: <>My Library</>,
 		},
 		{
-			key: 'upload',
-			label: 'Upload',
+			key: "upload",
+			label: "Upload",
 			icon: <UploadOutlined />,
 			value: <>Upload</>,
 		},
 		{
-			key: 'renderer',
-			label: 'Renderer',
+			key: "renderer",
+			label: "Renderer",
 			value: <>Upload</>,
-		}
+		},
 	];
 
 	const onMenuPageSelected = (key: string) => {
@@ -55,7 +54,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 					theme="dark"
 					defaultSelectedKeys={["search"]}
 					onSelect={({ key }: { key: string }) => {
-						setSelectedMenuItem(key);
 						onMenuPageSelected(key);
 					}}
 				></Menu>
