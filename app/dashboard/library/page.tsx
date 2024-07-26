@@ -1,66 +1,69 @@
 "use client";
 
-import React from "react";
-import dynamic from "next/dynamic";
+import React, { Suspense, useEffect, useState } from "react";
 import { Card, Col, Divider, Image, Row, Typography } from "antd";
+import { fetchWithAuthentication } from "../../src/authFetch";
 
-const { Title } = Typography;
-
-const ModelRenderer = dynamic(() => import("../../components/modelRenderer"), { ssr: false });
+const { Title, Paragraph } = Typography;
 
 const Library: React.FC = () => {
-	interface SampleInfo {
-		key: number;
+	interface SamplePreview {
+		id: number;
 		name: string;
+		description: string;
 	}
 
-	const items: SampleInfo[] = [
-		{
-			key: 1,
-			name: "Amethyst",
-		},
-		{
-			key: 2,
-			name: "Quartz",
-		},
-		{
-			key: 3,
-			name: "Corundum",
-		},
-		{
-			key: 4,
-			name: "Corundum",
-		},
-		{
-			key: 5,
-			name: "Corundum",
-		},
-		{
-			key: 6,
-			name: "Corundum",
-		},
-		{
-			key: 7,
-			name: "Corundum",
-		},
-	];
+	const [data, setData] = useState<SamplePreview[] | undefined>(undefined);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		if (!loading) return;
+
+		const url = "http://localhost:5047/api/sample/preview";
+		const init = {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		};
+
+		fetchWithAuthentication(
+			url,
+			init,
+			(data: Response) => {
+				data.json().then((data: any) => {
+					console.log(data);
+
+					setData(data);
+					setLoading(false);
+				});
+			},
+			() => {
+				setLoading(false);
+				setData(undefined);
+			}
+		);
+	}, []);
+
+	if (loading) return <p>Loading...</p>;
+	if (data === undefined) return <p>No data</p>;
 
 	return (
 		<>
 			<Title level={2}>Samples</Title>
-			<Row gutter={[16, 16]} justify="start">
-				{items.map((item: SampleInfo) => (
-					<Col key={item.key} span={4}>
-						<Card hoverable title={item.name}>
-							<ModelRenderer modelPath="/models/yoshi.glb" />
-						</Card>
-					</Col>
-				))}
-			</Row>
+			<Suspense>
+				<Row gutter={[16, 16]} justify="start" align="stretch">
+					{data.map((item: SamplePreview) => (
+						<Col key={item.id} span={4}>
+							<Card hoverable title={item.name}>
+								<Paragraph ellipsis={true}>{item.description}</Paragraph>
+							</Card>
+						</Col>
+					))}
+				</Row>
+			</Suspense>
 			<Divider></Divider>
 			<Title level={2}>Collections</Title>
 		</>
 	);
 };
-
-export default Library;

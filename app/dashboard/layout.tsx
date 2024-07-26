@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { UploadOutlined, UserOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu, Space, Typography } from "antd/lib";
 import "antd/dist/reset.css";
@@ -10,6 +10,7 @@ const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+	const pathname = usePathname();
 	const router = useRouter();
 	const items = [
 		{
@@ -23,6 +24,18 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 			label: "My Library",
 			icon: <UserOutlined />,
 			value: <>My Library</>,
+			children: [
+				{
+					key: "library/samples",
+					label: "Samples",
+					value: <>Samples</>,
+				},
+				{
+					key: "library/collections",
+					label: "Collections",
+					value: <>Collections</>,
+				},
+			],
 		},
 		{
 			key: "upload",
@@ -33,12 +46,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 		{
 			key: "renderer",
 			label: "Renderer",
-			value: <>Upload</>,
+			value: <>Renderer</>,
 		},
 	];
 
 	const onMenuPageSelected = (key: string) => {
-		router.push(key);
+		router.push(`/dashboard/${key}`);
 	};
 
 	return (
@@ -52,7 +65,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 				<Menu
 					items={items}
 					theme="dark"
-					defaultSelectedKeys={["search"]}
+					defaultSelectedKeys={[pathname.replace("/dashboard", "")]}
+					mode="inline"
 					onSelect={({ key }: { key: string }) => {
 						onMenuPageSelected(key);
 					}}

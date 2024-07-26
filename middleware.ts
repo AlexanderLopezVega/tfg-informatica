@@ -9,12 +9,11 @@ export const config = {
 
 const middleware = (req: NextRequest) => {
     const accessCookie = req.cookies.get('accessToken');
+    const hasToken = accessCookie && accessCookie.value;
 
-    if (accessCookie && accessCookie.value) {
+    if (hasToken) {
         if (req?.nextUrl?.pathname == '/')
             return NextResponse.redirect(new URL('/dashboard', req.nextUrl.origin));
-        else
-            req.headers.append('accessToken', accessCookie.value);
     }
     else if (req?.nextUrl?.pathname != '/')
         return NextResponse.redirect(new URL('/', req.nextUrl.origin));
