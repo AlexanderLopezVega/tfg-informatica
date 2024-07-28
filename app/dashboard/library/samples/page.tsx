@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchWithAuthentication } from "@/src/authFetch";
-import { Skeleton, Table, TableProps, Typography } from "antd";
+import { Alert, Skeleton, Table, TableProps, Typography } from "antd";
 
 const { Text } = Typography;
 
@@ -59,7 +59,7 @@ const Samples: React.FC = () => {
 	}, []);
 
 	if (loading) return <Skeleton></Skeleton>;
-	if (!data) return <Text type="warning">An error ocurred while loading the samples</Text>;
+	if (!data) return <Alert message="An error ocurred while loading the samples"></Alert>;
 
 	const columns: TableProps<TableSamplePreview>["columns"] = [
 		{

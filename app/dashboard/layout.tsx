@@ -1,18 +1,30 @@
 "use client";
-import React from "react";
+import React, { ReactNode, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { UploadOutlined, UserOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu, Space, Typography } from "antd/lib";
+import { LogoutOutlined, SearchOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import "./dashboard.css";
+import SamplesHeader from "@/components/headers/samplesHeader";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+interface MenuItem {
+	key: string;
+	label: string;
+	icon?: ReactNode;
+	value: ReactNode;
+	headerContent?: ReactNode;
+	children?: MenuItem[];
+}
+
+const DashboardLayout = ({ children }: { children: ReactNode }) => {
 	const pathname = usePathname();
 	const router = useRouter();
-	const items = [
+	const [headerContent, setHeaderContent] = useState<ReactNode>();
+
+	const mainMenuItems: MenuItem[] = [
 		{
 			key: "search",
 			label: "Search",
@@ -29,6 +41,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 					key: "library/samples",
 					label: "Samples",
 					value: <>Samples</>,
+					headerContent: <SamplesHeader />,
 				},
 				{
 					key: "library/collections",
@@ -49,6 +62,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 			value: <>Renderer</>,
 		},
 	];
+	const secondaryMenuItems: MenuItem[] = [
+		{
+			key: "logout",
+			label: "Logout",
+			icon: <LogoutOutlined />,
+			value: <>Logout</>,
+		},
+	];
 
 	const onMenuPageSelected = (key: string) => {
 		router.push(`/dashboard/${key}`);
@@ -56,21 +77,42 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
 	return (
 		<Layout style={{ minHeight: "100vh" }}>
-			<Sider width={300} breakpoint="sm">
-				<Header style={{ padding: "20px 40px" }} className="header-shadow">
-					<Title level={4} style={{ color: "#fff", fontWeight: 400 }}>
-						Title goes here
-					</Title>
-				</Header>
-				<Menu
-					items={items}
-					theme="dark"
-					defaultSelectedKeys={[pathname.replace("/dashboard", "")]}
-					mode="inline"
-					onSelect={({ key }: { key: string }) => {
-						onMenuPageSelected(key);
-					}}
-				></Menu>
+			<Sider width={300}>
+				<div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+					<Header style={{ padding: "20px 40px" }} className="header-shadow">
+						<Title level={4} style={{ color: "#fff", fontWeight: 400 }}>
+							Title goes here
+						</Title>
+					</Header>
+					<Menu
+						items={mainMenuItems}
+						theme="dark"
+						defaultSelectedKeys={[pathname.replace("/dashboard", "")]}
+						mode="inline"
+						onSelect={({ key }: { key: string }) => {
+							const item: MenuItem | undefined = mainMenuItems.find((value: MenuItem) => value.key === key);
+
+							if (!item || !item.headerContent) return;
+
+							setHeaderContent(item.headerContent);
+							onMenuPageSelected(key);
+						}}
+						style={{ flexGrow: 1 }}
+					></Menu>
+					<Menu
+						items={secondaryMenuItems}
+						theme="dark"
+						mode="inline"
+						selectable={false}
+						style={{ marginTop: "auto" }}
+						onSelect={({ key }: { key: string }) => {
+							if (key === "logout") {
+								// Handle logout logic here
+								console.log("Logout");
+							}
+						}}
+					></Menu>
+				</div>
 			</Sider>
 
 			<Layout>
