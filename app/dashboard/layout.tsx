@@ -1,12 +1,11 @@
 "use client";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Button, Layout, Menu, Space, Typography } from "antd/lib";
+import { Layout, Menu, Space, Typography } from "antd/lib";
 import { LogoutOutlined, SearchOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
-import "./dashboard.css";
-import SamplesHeader from "@/components/headers/samplesHeader";
-import RendererHeader from "@/components/headers/rendererHeader";
+import "@/dashboard/dashboard.css";
+import { useHeader } from "@/src/headerContext";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -18,25 +17,11 @@ interface MenuItem {
 	value: ReactNode;
 	children?: MenuItem[];
 }
-interface HeaderDictionary<T> {
-	[key: string]: T;
-}
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
-	const pathname = usePathname();
 	const router = useRouter();
-	const [headerContent, setHeaderContent] = useState<ReactNode>(
-		<>
-			<Space>
-				<Button type="primary">Primary button</Button>
-				<Button>Default button</Button>
-			</Space>
-		</>
-	);
-	const headerDictionary: HeaderDictionary<ReactNode> = {
-		"samples": <SamplesHeader />,
-		"renderer": <RendererHeader />,
-	};
+	const pathname = usePathname().replace("/dashboard", "");
+	const { headerContent } = useHeader();
 
 	const mainMenuItems: MenuItem[] = [
 		{
@@ -64,12 +49,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 			],
 		},
 		{
-			key: "upload",
-			label: "Upload",
-			icon: <UploadOutlined />,
-			value: <>Upload</>,
-		},
-		{
 			key: "renderer",
 			label: "Renderer",
 			value: <>Renderer</>,
@@ -84,9 +63,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 		},
 	];
 
-	const onMenuPageSelected = (key: string) => {
-		router.push(`/dashboard/${key}`);
-	};
+	//	Route to page when menu item selected
+	const onMenuPageSelected = (key: string) => router.push(`/dashboard/${key}`);
 
 	return (
 		<Layout style={{ minHeight: "100vh" }}>
@@ -100,17 +78,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 					<Menu
 						items={mainMenuItems}
 						theme="dark"
-						defaultSelectedKeys={[pathname.replace("/dashboard", "")]}
+						defaultSelectedKeys={[pathname]}
 						mode="inline"
 						onSelect={({ key }: { key: string }) => {
 							onMenuPageSelected(key);
-
-							//	Set header content
-							const item: ReactNode | undefined = headerDictionary[key];
-
-							if (!item) return;
-
-							setHeaderContent(item);
 						}}
 						style={{ flexGrow: 1 }}
 					></Menu>
@@ -134,8 +105,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 				<Header style={{ background: "#fff", padding: "0px 15px" }} className="header-shadow">
 					{headerContent}
 				</Header>
-
-				<Content style={{ marginTop: 10, padding: "15px" }}>{children}</Content>
+				<Content style={{ marginTop: 10, padding: "15px" }}>
+					{children}
+				</Content>
 			</Layout>
 		</Layout>
 	);

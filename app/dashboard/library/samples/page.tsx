@@ -1,29 +1,33 @@
 "use client";
 
+//	Imports
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { fetchWithAuthentication } from "@/src/authFetch";
-import { Alert, Skeleton, Table, TableProps, Typography } from "antd";
+import { Alert, Table, TableProps } from "antd";
+import { useHeader } from "@/src/headerContext";
+import SamplesHeader from "@/components/headers/samplesHeader";
 
-const { Text } = Typography;
-
+//	Type declaration
 interface SamplePreview {
 	id: number;
 	name: string;
 	description?: string;
 }
-
 interface TableSamplePreview {
 	key: number;
 	name: string;
 	description: string;
 }
 
+//	Component declaration
 const Samples: React.FC = () => {
 	const [data, setData] = useState<TableSamplePreview[] | undefined>(undefined);
 	const [loading, setLoading] = useState(true);
+	const { setHeaderContent } = useHeader();
 
 	useEffect(() => {
-		if (!loading) return;
+		setHeaderContent(<SamplesHeader />);
 
 		const url = "http://localhost:5047/api/sample/preview";
 		const init = {
@@ -58,14 +62,15 @@ const Samples: React.FC = () => {
 		);
 	}, []);
 
-	if (loading) return <Skeleton></Skeleton>;
-	if (!data) return <Alert message="An error ocurred while loading the samples"></Alert>;
+	// if (loading) return <Skeleton></Skeleton>;
+	if (!loading && !data) return <Alert message="An error ocurred while loading the samples"></Alert>;
 
 	const columns: TableProps<TableSamplePreview>["columns"] = [
 		{
 			title: "Name",
 			dataIndex: "name",
 			key: "name",
+			render: (text, record) => <Link href={`/dashboard/sample?id=${record.key}`}>{text}</Link>,
 		},
 		{
 			title: "Description",
@@ -76,7 +81,7 @@ const Samples: React.FC = () => {
 
 	return (
 		<>
-			<Table dataSource={data} columns={columns}></Table>
+			<Table dataSource={data} loading={loading} columns={columns}></Table>
 		</>
 	);
 };

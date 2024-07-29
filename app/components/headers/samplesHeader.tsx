@@ -4,7 +4,7 @@ import { Button } from "antd";
 const SamplesHeader: React.FC = () => {
 	return (
 		<>
-			<Button icon={<UploadOutlined />}>Upload</Button>
+			<Button type="primary" icon={<UploadOutlined />}>Upload</Button>
 		</>
 	);
 };
