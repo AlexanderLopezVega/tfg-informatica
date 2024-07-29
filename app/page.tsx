@@ -2,7 +2,7 @@
 
 import type { TabsProps } from "antd";
 import { useRouter } from "next/navigation";
-import { storeToken } from "./actions";
+import { storeToken } from "@/actions";
 import React from "react";
 import { Button, Card, Form, Input, Tabs, Typography } from "antd/lib";
 import { geekblue } from "@ant-design/colors";

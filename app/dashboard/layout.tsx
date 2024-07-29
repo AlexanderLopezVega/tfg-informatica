@@ -6,6 +6,7 @@ import { LogoutOutlined, SearchOutlined, UploadOutlined, UserOutlined } from "@a
 import "antd/dist/reset.css";
 import "./dashboard.css";
 import SamplesHeader from "@/components/headers/samplesHeader";
+import RendererHeader from "@/components/headers/rendererHeader";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -15,14 +16,27 @@ interface MenuItem {
 	label: string;
 	icon?: ReactNode;
 	value: ReactNode;
-	headerContent?: ReactNode;
 	children?: MenuItem[];
+}
+interface HeaderDictionary<T> {
+	[key: string]: T;
 }
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
 	const pathname = usePathname();
 	const router = useRouter();
-	const [headerContent, setHeaderContent] = useState<ReactNode>();
+	const [headerContent, setHeaderContent] = useState<ReactNode>(
+		<>
+			<Space>
+				<Button type="primary">Primary button</Button>
+				<Button>Default button</Button>
+			</Space>
+		</>
+	);
+	const headerDictionary: HeaderDictionary<ReactNode> = {
+		"samples": <SamplesHeader />,
+		"renderer": <RendererHeader />,
+	};
 
 	const mainMenuItems: MenuItem[] = [
 		{
@@ -41,7 +55,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 					key: "library/samples",
 					label: "Samples",
 					value: <>Samples</>,
-					headerContent: <SamplesHeader />,
 				},
 				{
 					key: "library/collections",
@@ -90,12 +103,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 						defaultSelectedKeys={[pathname.replace("/dashboard", "")]}
 						mode="inline"
 						onSelect={({ key }: { key: string }) => {
-							const item: MenuItem | undefined = mainMenuItems.find((value: MenuItem) => value.key === key);
-
-							if (!item || !item.headerContent) return;
-
-							setHeaderContent(item.headerContent);
 							onMenuPageSelected(key);
+
+							//	Set header content
+							const item: ReactNode | undefined = headerDictionary[key];
+
+							if (!item) return;
+
+							setHeaderContent(item);
 						}}
 						style={{ flexGrow: 1 }}
 					></Menu>
@@ -117,10 +132,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
 			<Layout>
 				<Header style={{ background: "#fff", padding: "0px 15px" }} className="header-shadow">
-					<Space>
-						<Button type="primary">Primary button</Button>
-						<Button>Default button</Button>
-					</Space>
+					{headerContent}
 				</Header>
 
 				<Content style={{ marginTop: 10, padding: "15px" }}>{children}</Content>

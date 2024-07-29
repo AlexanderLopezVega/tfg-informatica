@@ -1,4 +1,4 @@
-import { getToken } from "../actions";
+import { getToken } from "@/actions";
 
 export const fetchWithAuthentication = (url: string | URL | globalThis.Request, init: RequestInit, thenCallback: (data: Response) => void, catchCallback?: (reason: any) => void) => {
 	//  Fetch authentication token
