@@ -2,86 +2,60 @@
 
 //	Imports
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { fetchWithAuthentication } from "@/src/authFetch";
-import { Alert, Table, TableProps } from "antd";
-import { useHeader } from "@/src/headerContext";
-import SamplesHeader from "@/components/headers/samplesHeader";
+import { Alert, Button, Table, TableProps } from "antd";
+import SamplesTable, { TableEntry } from "@/components/samplesTable";
+import { FileAddOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
-//	Type declaration
 interface SamplePreview {
 	id: number;
-	name: string;
-	description?: string;
-}
-interface TableSamplePreview {
-	key: number;
 	name: string;
 	description: string;
 }
 
 //	Component declaration
 const Samples: React.FC = () => {
-	const [data, setData] = useState<TableSamplePreview[] | undefined>(undefined);
+	const router = useRouter();
+	const [tableData, setTableData] = useState<TableEntry[]>();
 	const [loading, setLoading] = useState(true);
-	const { setHeaderContent } = useHeader();
+
+	const onCreateSample = () => {
+		router.push('/dashboard/create-sample');
+	};
 
 	useEffect(() => {
-		setHeaderContent(<SamplesHeader />);
-
-		const url = "http://localhost:5047/api/sample/preview";
-		const init = {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		};
-
 		fetchWithAuthentication(
-			url,
-			init,
+			"http://localhost:5047/api/sample/preview",
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			},
 			(data: Response) => {
 				data.json().then((data: SamplePreview[]) => {
-					const tableData = data.map((value: SamplePreview): TableSamplePreview => {
-						return {
-							key: value.id,
-							name: value.name,
-							description: value.description ?? "No description provided",
-						};
-					});
-					console.log(tableData);
+					const tableData = data.map((value: SamplePreview): TableEntry =>
+					({
+						key: value.id,
+						name: value.name,
+						description: value.description ?? "No description provided",
+					}));
 
-					setData(tableData);
+					setTableData(tableData);
 					setLoading(false);
 				});
 			},
-			() => {
-				setLoading(false);
-				setData(undefined);
-			}
+			() => { setLoading(false); }
 		);
 	}, []);
 
-	// if (loading) return <Skeleton></Skeleton>;
-	if (!loading && !data) return <Alert message="An error ocurred while loading the samples"></Alert>;
-
-	const columns: TableProps<TableSamplePreview>["columns"] = [
-		{
-			title: "Name",
-			dataIndex: "name",
-			key: "name",
-			render: (text, record) => <Link href={`/dashboard/sample?id=${record.key}`}>{text}</Link>,
-		},
-		{
-			title: "Description",
-			dataIndex: "description",
-			key: "description",
-		},
-	];
+	if (!loading && !tableData) return <Alert message="An error ocurred while loading the samples"></Alert>
 
 	return (
 		<>
-			<Table dataSource={data} loading={loading} columns={columns}></Table>
+			<Button type="primary" icon={<FileAddOutlined />} onClick={onCreateSample}>Create</Button>
+			<SamplesTable tableData={tableData} />
 		</>
 	);
 };

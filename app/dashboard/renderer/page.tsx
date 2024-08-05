@@ -1,8 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { useHeader } from "@/src/headerContext";
-import RendererHeader from "@/components/headers/rendererHeader";
 import { Skeleton } from "antd";
 
 //	Type declaration
@@ -16,17 +14,10 @@ const ModelRenderer = dynamic(() => import("@/components/modelRenderer"), { ssr:
 //	Component declaration
 const Renderer: React.FC<RendererProperties> = (props: RendererProperties) => {
 	const [modelPath, setModelPath] = useState(props.defaultModelPath);
-	const { setHeaderContent } = useHeader();
-
-	useEffect(() => {
-		setHeaderContent(<RendererHeader setModelPath={setModelPath} />);
-
-		return () => setHeaderContent(null);
-	}, []);
-
+	
 	if (!modelPath) return <Skeleton active/>;
 
-	return <ModelRenderer modelName={modelPath} />;
+	return <ModelRenderer model={modelPath} />;
 };
 
 export default Renderer;

@@ -1,15 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchWithAuthentication } from "@/src/authFetch";
-import { Alert, Skeleton, Table, TableProps, Typography } from "antd";
-
-const { Text } = Typography;
-
-interface CollectionPreview {
-	id: number;
-	name: string;
-}
+import {useState } from "react";
+import { Table, TableProps} from "antd";
 
 interface TableCollectionPreview {
 	key: number;

@@ -2,42 +2,45 @@ import React, { useRef, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { message } from "antd";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { Alert, message } from "antd";
 
 interface ModelProps {
-	modelName: string;
+	model: string;
 	onError?: (message: string) => void;
 };
+interface ModelRendererProps {
+	model?: string;
+	height?: number;
+};
 
-const Model: React.FC<ModelProps> = ({ modelName, onError }) => {
+const Model: React.FC<ModelProps> = ({ model, onError }) => {
 	const modelRef = useRef<THREE.Group | null>(null);
 
 	useEffect(() => {
-		if (!modelName) return;
+		if (!model) return;
 
-		console.log(modelName);
+		const loader = new OBJLoader();
 
-		const loader = new GLTFLoader();
+		try {
+			const obj = loader.parse(model);
 
-		loader.load(
-			`/models/${modelName}`,
-			(gltf) => {
-				if (modelRef.current) {
-					modelRef.current.add(gltf.scene);
-				}
-			},
-			undefined,
-			() => {
-				onError?.("An error occurred while loading the model");
-			}
-		);
-	}, [modelName]);
+			if (modelRef.current)
+				modelRef.current.add(obj);
+		} catch (error) {
+			console.error(error);
+			onError?.("An error ocurred while loading the model");
+		}
+
+	}, [model, onError]);
 
 	return <group ref={modelRef} />;
 };
 
-const ModelRenderer: React.FC<ModelProps> = ({ modelName }) => {
+const ModelRenderer: React.FC<ModelRendererProps> = ({ model, height }) => {
+	if (!model)
+		return <Alert message="Could not load model" type="error" />
+
 	const [messageAPI, contextHolder] = message.useMessage();
 
 	const showError = (content: string) => {
@@ -47,10 +50,12 @@ const ModelRenderer: React.FC<ModelProps> = ({ modelName }) => {
 		});
 	};
 
+	height ??= 700;
+
 	return (
-		<>
+		<div style={{ height }}>
 			{contextHolder}
-			<Canvas camera={{ position: [0, 0, 5], fov: 50 }} style={{background: "rgb(220, 220, 220)"}}>
+			<Canvas camera={{ position: [0, 0, -3], fov: 50 }} style={{ background: "rgb(220, 220, 220)" }}>
 				<ambientLight intensity={1} />
 
 				<pointLight position={[-2, -2, -2]} intensity={10} />
@@ -63,11 +68,11 @@ const ModelRenderer: React.FC<ModelProps> = ({ modelName }) => {
 				<pointLight position={[-2, 2, 2]} intensity={10} />
 				<pointLight position={[2, 2, 2]} intensity={10} />
 
-				<Model modelName={modelName} onError={showError} />
+				<Model model={model} onError={showError} />
 
 				<OrbitControls />
 			</Canvas>
-		</>
+		</div>
 	);
 };
 

@@ -18,8 +18,3 @@ export const storeToken = async (request: StoreTokenRequest) => {
 };
 
 export const getToken = async () => cookies().get("accessToken");
-
-export const writeToFile = (name: string, modelFile: Uint8Array) => {
-	console.log("Writing file");
-	writeFileSync(`/public/models/${name}.glb`, modelFile);
-};

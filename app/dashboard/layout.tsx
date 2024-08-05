@@ -1,11 +1,9 @@
 "use client";
 import React, { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Layout, Menu, Space, Typography } from "antd/lib";
-import { LogoutOutlined, SearchOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
+import { Layout, Menu, Typography } from "antd/lib";
+import { LogoutOutlined, SearchOutlined, UserOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
-import "@/dashboard/dashboard.css";
-import { useHeader } from "@/src/headerContext";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -21,7 +19,6 @@ interface MenuItem {
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
 	const router = useRouter();
 	const pathname = usePathname().replace("/dashboard", "");
-	const { headerContent } = useHeader();
 
 	const mainMenuItems: MenuItem[] = [
 		{
@@ -101,14 +98,9 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 				</div>
 			</Sider>
 
-			<Layout>
-				<Header style={{ background: "#fff", padding: "0px 15px" }} className="header-shadow">
-					{headerContent}
-				</Header>
-				<Content style={{ marginTop: 10, padding: "15px" }}>
-					{children}
-				</Content>
-			</Layout>
+			<Content style={{ padding: "15px" }}>
+				{children}
+			</Content>
 		</Layout>
 	);
 };

@@ -1,93 +1,75 @@
 "use client";
 
-import { Alert, Skeleton, Descriptions } from "antd";
+import { Alert, Skeleton } from "antd";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { DescriptionsProps } from "antd";
 import { fetchWithAuthentication } from "@/src/authFetch";
 import ModelRenderer from "@/components/modelRenderer";
-import { writeToFile } from "@/actions";
+import SampleMetadataDisplay, { Metadata } from "@/components/sampleMetadataDisplay";
 
-//	Type declaration
-interface SampleDTO {
-	id: number;
-	name: string;
-	description?: string;
-}
 interface ModelDTO {
-	id: string;
-	modelFile: Uint8Array;
-}
+	modelFile: string;
+};
+
+const fetchInit = {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+	},
+};
 
 const Sample: React.FC = () => {
-	const [data, setData] = useState<SampleDTO | undefined>(undefined);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [metadata, setMetadata] = useState<Metadata | undefined>(undefined);
+	const [model, setModel] = useState<ModelDTO | undefined>(undefined);
+	const [metadataLoading, setMetadataLoading] = useState<boolean>(true);
+	const [modelLoading, setModelLoading] = useState<boolean>(true);
 
 	const params = useSearchParams();
 	const id = params.get("id");
 
 	useEffect(() => {
-		const url = `http://localhost:5047/api/sample/${id}`;
-		const init = {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		};
-
+		//	Fetch metadata
 		fetchWithAuthentication(
-			url,
-			init,
+			`http://localhost:5047/api/sample/${id}`,
+			fetchInit,
 			(data: Response) => {
-				data.json().then((data: SampleDTO) => {
-					setData(data);
-					setLoading(false);
-
-					const url = `http://localhost:5047/api/model/${id}`;
-					const init = {
-						method: "GET",
-						headers: {
-							"Content-Type": "application/json",
-						},
-					};
-
-					fetchWithAuthentication(
-						url,
-						init,
-						(modelData: Response) => {
-							modelData.json().then((modelData: ModelDTO) => {
-								writeToFile(modelData.id, modelData.modelFile);
-							});
-						},
-						(reason: any) => {
-							console.log("Couldn't load model");
-						}
-					);
+				data.json().then((data: Metadata) => {
+					setMetadata(data);
+					setMetadataLoading(false);
 				});
 			},
-			(reason: any) => {
-				setLoading(false);
+			() => {
+				setMetadataLoading(false);
 			}
 		);
-	}, []);
 
-	if (loading) return <Skeleton active />;
-	if (!data) return <Alert message="Could not load sample" type="error" />;
-
-	const items: DescriptionsProps["items"] = [
-		{
-			key: "description",
-			label: "Description",
-			children: data.description ?? "No description provided",
-		},
-	];
+		//	Fetch 3D model
+		fetchWithAuthentication(
+			`http://localhost:5047/api/model/${id}`,
+			fetchInit,
+			(modelData: Response) => {
+				modelData.json().then((model: ModelDTO) => {
+					setModel(model);
+					setModelLoading(false);
+				});
+			},
+			() => {
+				setModelLoading(false);
+			}
+		);
+	}, [id]);
 
 	return (
 		<>
-			<Descriptions title={data.name} items={items} />
-			<div style={{ height: 700 }}>
-				<ModelRenderer modelName={"yoshi.glb"} />
-			</div>
+			{
+				metadataLoading
+					? <Skeleton active />
+					:
+					<>
+						<SampleMetadataDisplay metadata={metadata} />
+						<ModelRenderer model={model?.modelFile} />
+					</>
+			}
 		</>
 	);
 };
