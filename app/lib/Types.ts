@@ -21,7 +21,7 @@ export interface CollectionPreviewDTO {
   ID: string,
   name: string,
   description: string,
-  sampleList: SamplePreviewDTO[],
+  sampleList: Partial<SamplePreviewDTO>[],
 }
 
 export interface CollectionDTO {

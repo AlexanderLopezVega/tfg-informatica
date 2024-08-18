@@ -18,14 +18,16 @@ export const SampleCard: React.FC<SampleCardProps> = ({
   cardStyle,
   imageFallback,
   imageUrl,
+  ID,
 }) => {
+  
   return (
     <Col
       xs={columnsSizes.xs}
       sm={columnsSizes.sm}
       md={columnsSizes.md}
       lg={columnsSizes.lg}>
-      <Link href='#'>
+      <Link href={`/dashboard/sample?id=${ID}`}>
         <Card hoverable style={cardStyle}>
           <Flex vertical gap='middle'>
             <Image

@@ -14,12 +14,12 @@ import { RadioChangeEvent } from 'antd/lib';
 import React, { useEffect, useState } from 'react';
 import { CollectionCard } from '../../components/collectionCard';
 import { SampleCard } from '../../components/sampleCard';
-import { CollectionDTO, CollectionPreviewDTO, SamplePreviewDTO } from '../../lib/Types';
+import { CollectionPreviewDTO, SamplePreviewDTO } from '../../lib/Types';
 
 const { Search } = Input;
 const { Title } = Typography;
 
-type cardData = Partial<SamplePreviewDTO | CollectionDTO> & { image?: string };
+type cardData = Partial<SamplePreviewDTO | CollectionPreviewDTO> & { image?: string };
 
 const SearchType = {
   Sample: "Sample",
@@ -134,9 +134,15 @@ const SearchPage: React.FC = () => {
   const onSearchTypeChange = ({ target: { value } }: RadioChangeEvent) => {
     if (searchType === value) return;
     setSearchType(value);
-    // const initialContent: cardData[] = [];
-    // for(var i = 0; i < 10; ++i) initialContent.push({ name: `Element CHANGED ${i}`, description: `description CHANGED text`, image: `` });
-    // setElements(initialContent)
+    const initialContent: cardData[] = [];
+		///TODO REMEMBER TO REMOVE THIS
+		if(value === SearchType.Collection) for(var i = 0; i < 120; ++i) initialContent.push({ name: `Element CHANGED ${i}`, description: `description CHANGED text`, sampleList: [
+			{ name: "sex", ID: "1231231" },
+			{ name: "sex 2", ID: "1231231" },
+			{ name: "sex 3", ID: "1231231" },
+			{ name: "sex 4", ID: "1231231" }]});
+		else for (var i = 0; i < 43; ++i)initialContent.push({name: `Element ${i}`, description: `description text`, image: ``, });
+    setElements(initialContent);
   };
 
   const onSearch = (value: string) => {

@@ -16,14 +16,16 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
   columnsSizes,
   cardStyle,
   sampleList,
+  ID,
 }) => {
+  
   return (
     <Col
       xs={columnsSizes.xs}
       sm={columnsSizes.sm}
       md={columnsSizes.md}
       lg={columnsSizes.lg}>
-      <Link href='#'>
+      <Link href={`/dashboard/collection?id=${ID}`}>
         <Card hoverable style={cardStyle}>
           <Flex vertical gap='middle'>
             <Title level={3}>{name}</Title>
