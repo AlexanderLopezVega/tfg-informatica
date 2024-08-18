@@ -61,7 +61,6 @@ const SearchPage: React.FC = () => {
 	}, [searchQuery]);
 
 	const loadData = (data: SamplePreviewDTO[]) => {
-		/// TODO SHUT THE FUCK UP MAKE THIS WORK WITH THE CORRECT FORMAT
 		setElements(data as any);
 		setLoading(false);
 	};
