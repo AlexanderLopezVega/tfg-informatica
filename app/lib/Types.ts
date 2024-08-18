@@ -17,6 +17,13 @@ export interface SamplePreviewDTO {
   imageUrl: string,
 }
 
+export interface CollectionPreviewDTO {
+  ID: string,
+  name: string,
+  description: string,
+  sampleList: SamplePreviewDTO[],
+}
+
 export interface CollectionDTO {
 
 }

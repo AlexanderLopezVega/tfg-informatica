@@ -3,8 +3,9 @@
 import { Divider, Flex, Input, Radio, Row, Spin, Typography } from "antd";
 import { RadioChangeEvent } from "antd/lib";
 import React, { useEffect, useState } from "react";
+import { CollectionCard } from '../../components/collectionCard';
 import { SampleCard } from '../../components/sampleCard';
-import { SamplePreviewDTO } from '../../lib/Types';
+import { CollectionDTO, SampleDTO, SamplePreviewDTO } from '../../lib/Types';
 
 const { Search } = Input;
 const { Title } = Typography;	
@@ -88,11 +89,15 @@ const SearchPage: React.FC = () => {
 				?	<Spin size="large" tip="Loading..." />
 				: <Row gutter={[15, 15]}>
 						{
-							(elements as any)?.map((e: any, i: number) => {
+							elements?.map((e: any, i: number) => {
 								return <React.Fragment key={i}>
-									<SampleCard {...e} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
+									{
+									/// Check Card type here, easier
+									searchType === SearchType.Sample 
+										? <SampleCard {...e as SampleDTO} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
+										: <CollectionCard {...e as CollectionDTO} columnsSizes={columnsSizes} cardStyle={cardStyle} /> 
+									}
 								</React.Fragment>
-							
 							}
 						)
 					}

@@ -8,7 +8,6 @@ const { Text, Title } = Typography;
 type SampleCardProps = {
   columnsSizes: any;
   cardStyle: CSSProperties;
-  text: string;
   imageFallback: string;
 } & Partial<SamplePreviewDTO>;
 
