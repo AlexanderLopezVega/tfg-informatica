@@ -1,9 +1,10 @@
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
-import Link from "next/link";
-import { Card, Col, Divider, Flex, Image, Input, Radio, Row, Spin, Typography } from "antd";
+import { Divider, Flex, Input, Radio, Row, Spin, Typography } from "antd";
 import { RadioChangeEvent } from "antd/lib";
+import React, { useEffect, useState } from "react";
+import { SampleCard } from '../../components/sampleCard';
+import { SamplePreviewDTO } from '../../lib/Types';
 
 const { Search } = Input;
 const { Title } = Typography;	
@@ -28,26 +29,14 @@ const cardStyle: React.CSSProperties = {
 	height: "100%",
 };
 
-const createCard = (text: string, key?: number) => (
-	<Col xs={columnsSizes.xs} sm={columnsSizes.sm} md={columnsSizes.md} lg={columnsSizes.lg} key={key ?? text}>
-		<Link href="#">
-			<Card hoverable style={cardStyle}>
-				<Flex vertical gap="middle">
-					<Image alt={`Image of ${text}`} src="" fallback={imageFallback} preview={false} />
-					{text}
-				</Flex>
-			</Card>
-		</Link>
-	</Col>
-);
+type sampleData = (Partial<SamplePreviewDTO> & {image?: string});
 
-const initialContent: ReactNode[] = [];
-
-for (let i = 0; i < 10; ++i) initialContent.push(createCard(`Element ${i}`));
+const initialContent: sampleData[] = [];
+for(var i = 0; i < 10; ++i) initialContent.push({ name: `Element ${i}`, description: `description text`, image: `` });
 
 const SearchPage: React.FC = () => {
 	const [searchType, setSearchType] = useState<SearchType>(SearchType.Sample);
-	const [elements, setElements] = useState<ReactNode>(initialContent);
+	const [elements, setElements] = useState<sampleData[]>(initialContent);
 	const [searchQuery, setSearchQuery] = useState<string>();
 	const [loading, setLoading] = useState<boolean>(false);
 
@@ -70,10 +59,9 @@ const SearchPage: React.FC = () => {
 			});
 	}, [searchQuery]);
 
-	const loadData = (data: JSON[]) => {
-		const newElements = data.map((element: any, index: number) => createCard(element["name"], index));
-
-		setElements(newElements);
+	const loadData = (data: SamplePreviewDTO[]) => {
+		/// TODO SHUT THE FUCK UP MAKE THIS WORK WITH THE CORRECT FORMAT
+		setElements(data as any);
 		setLoading(false);
 	};
 
@@ -88,16 +76,6 @@ const SearchPage: React.FC = () => {
 
 	const searchTypes: string[] = [SearchType[SearchType.Sample], SearchType[SearchType.Collection]];
 
-	let searchContent = <Row gutter={[15, 15]}>{elements}</Row>;
-
-	if (loading) {
-		searchContent = (
-			<Spin size="large" tip="Loading...">
-				{searchContent}
-			</Spin>
-		);
-	}
-
 	return (
 		<>
 			<Title>Search</Title>
@@ -106,9 +84,22 @@ const SearchPage: React.FC = () => {
 				<Radio.Group options={searchTypes} optionType="button" defaultValue={SearchType[searchType]} onChange={onSearchTypeChange} />
 			</Flex>
 			<Divider />
-			{searchContent}
+			{loading 
+				?	<Spin size="large" tip="Loading..." />
+				: <Row gutter={[15, 15]}>
+						{
+							(elements as any)?.map((e: any, i: number) => {
+								return <React.Fragment key={i}>
+									<SampleCard {...e} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
+								</React.Fragment>
+							
+							}
+						)
+					}
+				</Row>
+			}
 		</>
 	);
-};
+}; 
 
 export default SearchPage;
