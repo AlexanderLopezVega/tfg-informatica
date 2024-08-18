@@ -1,49 +1,69 @@
-import { Alert, Descriptions, DescriptionsProps, Divider, Flex, Space, Tag, Typography } from "antd";
+import { Descriptions, DescriptionsProps, Flex, Tag } from "antd";
 
-export interface Metadata {
-    id: number;
-    name: string;
-    description?: string;
-};
-
-interface Props {
-    metadata?: Metadata;
+export interface SampleMetadataDisplayProps {
+	name: string;
+	description?: string;
+	tags?: string[];
+	publicationStatus: number;
+	editableFields?: boolean;
 }
 
-const { Title } = Typography;
+const SampleMetadataDisplay: React.FC<SampleMetadataDisplayProps> = ({ name, description, tags, publicationStatus, editableFields = true }) => {
+	const items: DescriptionsProps["items"] = [
+		{
+			key: "name",
+			label: "Name",
+			children: name,
+		},
+		{
+			key: "description",
+			label: "Description",
+			children: description ?? "No description provided",
+		},
+		{
+			key: "tags",
+			label: "Tags",
+			children: tags?.map((tag: string) => <Tag key={tag}>{tag}</Tag>),
+		},
+		{
+			key: "publicationStatus",
+			label: "Publication Status",
+			children: ["Private", "Public"][publicationStatus],
+		},
+	];
 
-const SampleMetadataDisplay: React.FC<Props> = (props) => {
-    const metadata = props.metadata;
+	return (
+		<Flex vertical gap="middle">
+			<Descriptions items={items} column={1} />
 
-    if (!metadata)
-        return <Alert message="Could not load sample metadata" type="error" />
-
-    const items: DescriptionsProps["items"] = [
-        {
-            key: "description",
-            label: "Description",
-            children: metadata.description ?? "No description provided",
-        },
-    ];
-
-    return (
-        <>
-            <Space size="middle" direction="vertical">
-                <div>
-                    <Title level={1}>{metadata.name}</Title>
-                    <Flex>
-                        <Tag closable>Foo</Tag>
-                        <Tag closable>Bar</Tag>
-                        <Tag closable>Baz</Tag>
-                    </Flex>
-                </div>
-                <div>
-                    <Descriptions items={items} />
-                </div>
-            </Space>
-            <Divider />
-        </>
-    );
+			{/* <Row>
+				<Col span={4}>
+					<Text type="secondary">Name:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					<Text>{name}</Text>
+				</Col>
+			</Row>
+			<Row>
+				<Col span={4}>
+					<Text type="secondary">Description:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					<Text>{description ?? "No descrtipion"}</Text>
+				</Col>
+			</Row>
+			<Row>
+				<Col span={4}>
+					<Text type="secondary">Tags:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					{tags?.map((tag: string) => (
+						<Tag key={tag}>{tag}</Tag>
+					))}
+				</Col>
+			</Row> */}
+		</Flex>
+	);
 };
 
 export default SampleMetadataDisplay;

@@ -1,72 +1,157 @@
 "use client";
 
-import {useState } from "react";
-import { Table, TableProps} from "antd";
+import { useCallback, useEffect, useState } from "react";
+import { Button, Flex, message, Modal, Space, Table, TableProps, Typography } from "antd";
+import { FileAddOutlined } from "@ant-design/icons";
+import { TableRowSelection } from "antd/es/table/interface";
+import { useRouter } from "next/navigation";
+import { getToken } from "@/actions";
+import { authFetch } from "@/src/authFetch";
+import Link from "next/link";
 
-interface TableCollectionPreview {
+const { Title } = Typography;
+
+interface CollectionPreview {
+	id: number;
+	name: string;
+	description: string;
+}
+interface TableEntry {
 	key: number;
 	name: string;
+	description: string;
 }
 
+const columns: TableProps<TableEntry>["columns"] = [
+	{
+		title: "Name",
+		dataIndex: "name",
+		key: "name",
+		render: (text, record) => <Link href={`/dashboard/collection?id=${record.key}`}>{text}</Link>,
+	},
+	{
+		title: "Description",
+		dataIndex: "description",
+		key: "description",
+	},
+];
+
 const Collections: React.FC = () => {
-	const [data, setData] = useState<TableCollectionPreview[] | undefined>(undefined);
+	const router = useRouter();
+	const [messageApi, contextHolder] = message.useMessage();
+	const [tableData, setTableData] = useState<TableEntry[]>();
+	const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [modalOpen, setModalOpen] = useState(false);
+	const [modalConfirmLoading, setModalConfirmLoading] = useState(false);
 
-    //  TODO: Implement in backend collection preview DTO
-	// useEffect(() => {
-	// 	if (!loading) return;
+	const loadCollections = useCallback(() => {
+		getToken().then((cookie) => {
+			if (!cookie) return;
 
-	// 	const url = "http://localhost:5047/api/collection/preview";
-	// 	const init = {
-	// 		method: "GET",
-	// 		headers: {
-	// 			"Content-Type": "application/json",
-	// 		},
-	// 	};
+			const userID = JSON.parse(cookie.value)["userID"];
 
-	// 	fetchWithAuthentication(
-	// 		url,
-	// 		init,
-	// 		(data: Response) => {
-	// 			data.json().then((data: CollectionPreview[]) => {
-	// 				const tableData = data.map((value: CollectionPreview): TableCollectionPreview => {
-	// 					return {
-	// 						key: value.id,
-	// 						name: value.name,
-	// 					};
-	// 				});
-	// 				console.log(tableData);
+			authFetch(
+				"http://localhost:5047/api/collections/previews?" +
+					new URLSearchParams({
+						user: userID,
+					}),
+				{
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			)
+				.then((response) => response.json())
+				.then((data: CollectionPreview[]) => {
+					setTableData(
+						data.map(
+							(value: CollectionPreview): TableEntry => ({
+								key: value.id,
+								name: value.name,
+								description: value.description ?? "No description provided",
+							})
+						)
+					);
+				})
+				.finally(() => setLoading(false));
+		});
+	}, []);
 
-	// 				setData(tableData);
-	// 				setLoading(false);
-	// 			});
-	// 		},
-	// 		() => {
-	// 			setLoading(false);
-	// 			setData(undefined);
-	// 		}
-	// 	);
-	// }, []);
+	const onCreateCollection = () => {
+		router.push("/dashboard/create-collection");
+	};
+	const onSelectedRowsChange = (newSelectedRowKeys: React.Key[]) => setSelectedRowKeys(newSelectedRowKeys);
+	const onRowSelected: TableRowSelection<TableEntry> = {
+		selectedRowKeys,
+		onChange: onSelectedRowsChange,
+	};
+	const showModal = () => setModalOpen(true);
+	const hideModal = () => setModalOpen(false);
+	const onDeleteModalConfirm = () => {
+		setModalConfirmLoading(true);
 
-	// if (loading) return <Skeleton></Skeleton>;
-	// if (!data) return <Alert message="An error ocurred while loading the samples"></Alert>;
+		const collectionIDs: number[] = selectedRowKeys.map((key) => parseInt(key.toString()));
+		const body = { collectionIDS: collectionIDs };
 
-	const columns: TableProps<TableCollectionPreview>["columns"] = [
-		{
-			title: "Name",
-			dataIndex: "name",
-			key: "name",
-		},
-		{
-			title: "Description",
-			dataIndex: "description",
-			key: "description",
-		},
-	];
+		fetch("http://localhost:5047/api/collections", {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+		})
+			.then(() => {
+				messageApi.open({
+					type: "success",
+					content: "Collections successfully deleted",
+				});
+				setModalConfirmLoading(false);
+				hideModal();
+				setSelectedRowKeys([]);
+				loadCollections();
+			})
+			.catch((reason) => console.log(reason));
+	};
+	const onDeleteModalCancel = () => {
+		hideModal();
+	};
+
+	useEffect(loadCollections, []);
 
 	return (
 		<>
-			<Table dataSource={data} columns={columns}></Table>
+			{contextHolder}
+			<Flex vertical={true} gap="middle">
+				<Title>Collections</Title>
+				<Space>
+					<Button type="primary" icon={<FileAddOutlined />} onClick={onCreateCollection}>
+						Create
+					</Button>
+					<Button danger onClick={showModal} disabled={selectedRowKeys.length == 0}>
+						Delete
+					</Button>
+				</Space>
+				<Table columns={columns} dataSource={tableData} rowSelection={onRowSelected} loading={loading}></Table>
+			</Flex>
+			<Modal
+				open={modalOpen}
+				title="Delete collections"
+				onOk={onDeleteModalConfirm}
+				onCancel={onDeleteModalCancel}
+				confirmLoading={modalConfirmLoading}
+				footer={[
+					<Button key="cancel" onClick={onDeleteModalCancel}>
+						Cancel
+					</Button>,
+					<Button key="delete" onClick={onDeleteModalConfirm} type="primary" danger>
+						Delete
+					</Button>,
+				]}
+			>
+				Are you sure you wish to delete these {selectedRowKeys.length} collections?
+			</Modal>
 		</>
 	);
 };

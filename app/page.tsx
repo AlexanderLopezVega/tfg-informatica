@@ -1,9 +1,9 @@
 "use client";
 
-import type { TabsProps } from "antd";
 import { useRouter } from "next/navigation";
 import { storeToken } from "@/actions";
-import React from "react";
+import React, { useState } from "react";
+import { message, Spin, type TabsProps } from "antd";
 import { Button, Card, Form, Input, Tabs, Typography } from "antd/lib";
 import { geekblue } from "@ant-design/colors";
 import "antd/dist/reset.css";
@@ -11,14 +11,20 @@ import "./login.css";
 
 const { Title } = Typography;
 
-const LoginForm = () => {
+interface FormProps {
+	setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+	showError: (errorMessage: string) => void;
+}
+
+const LoginForm: React.FC<FormProps> = ({ setLoading, showError }) => {
 	const [formData] = Form.useForm();
 	const router = useRouter();
 
 	const onFinish = async (values: any) => {
+		setLoading(true);
+
 		//	Post login request
-		const input = "http://localhost:5047/api/auth/login";
-		const init = {
+		fetch("http://localhost:5047/api/auth/login", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -27,17 +33,19 @@ const LoginForm = () => {
 				username: values.username,
 				passwordHash: values.password,
 			}),
-		};
-
-		fetch(input, init)
+		})
 			.then((data) => {
 				if (data.ok)
 					data.json().then((data) => {
 						storeToken(data).then(() => router.push("dashboard"));
 					});
+				else showError("Invalid username or password");
 			})
-			.catch((error) => {
-				console.log(error);
+			.catch(() => {
+				showError("Could not contact the server");
+			})
+			.finally(() => {
+				setLoading(false);
 			});
 	};
 
@@ -60,14 +68,15 @@ const LoginForm = () => {
 	);
 };
 
-const RegisterForm = () => {
+const RegisterForm: React.FC<FormProps> = ({ setLoading, showError }) => {
 	const [form] = Form.useForm();
 	const router = useRouter();
 
 	const onFinish = async (values: any) => {
+		setLoading(true);
+
 		//	Post register request
-		const url = "http://localhost:5047/api/auth/register";
-		const init = {
+		fetch("http://localhost:5047/api/auth/register", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -76,16 +85,16 @@ const RegisterForm = () => {
 				username: values.username,
 				passwordHash: values.password,
 			}),
-		};
-
-		fetch(url, init)
-			.then((data) => {
-				data.json().then((data) => {
-					storeToken(data).then(() => router.push("dashboard"));
-				});
+		})
+			.then((data) => data.json())
+			.then((data: { token: string, userID: number }) => {
+				storeToken(data).then(() => router.push("dashboard"));
 			})
-			.catch((error) => {
-				console.log(error);
+			.catch(() => {
+				showError("Could not contact the server");
+			})
+			.finally(() => {
+				setLoading(false);
 			});
 	};
 
@@ -107,10 +116,7 @@ const RegisterForm = () => {
 					{ required: true, message: "Please confirm your password!" },
 					({ getFieldValue }) => ({
 						validator(_: any, value: string) {
-							if (!value || getFieldValue("password") === value) {
-								return Promise.resolve();
-							}
-							return Promise.reject(new Error("The two passwords do not match!"));
+							return !value || getFieldValue("password") === value ? Promise.resolve() : Promise.reject(new Error("The two passwords do not match!"));
 						},
 					}),
 				]}
@@ -128,27 +134,49 @@ const RegisterForm = () => {
 };
 
 const Login: React.FC = () => {
+	const [loading, setLoading] = useState<boolean>(false);
+	const [messageApi, contextHolder] = message.useMessage();
+
+	const showError = (errorMessage: string) => {
+		messageApi.open({
+			type: "error",
+			content: errorMessage,
+			duration: 10,
+		});
+	};
+
 	const items: TabsProps["items"] = [
 		{
 			key: "login",
 			label: "Login",
-			children: <LoginForm />,
+			children: <LoginForm setLoading={setLoading} showError={showError} />,
 		},
 		{
 			key: "register",
 			label: "Register",
-			children: <RegisterForm />,
+			children: <RegisterForm setLoading={setLoading} showError={showError} />,
 		},
 	];
 
-	return (
+	let content = (
 		<div className="login-page" style={{ backgroundColor: geekblue[0] }}>
 			<Card className="card-shadow">
-				<Title level={2}>Rock samples app</Title>
+				<Title level={2}>GeoVault</Title>
 				<Tabs defaultActiveKey="login" items={items}></Tabs>
 			</Card>
 		</div>
 	);
+
+	if (loading) content = <Spin>{content}</Spin>;
+
+	content = (
+		<>
+			{contextHolder}
+			{content}
+		</>
+	);
+
+	return content;
 };
 
 export default Login;

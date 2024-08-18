@@ -1,301 +1,395 @@
-"use client"
+"use client";
 
-import ModelRenderer from '@/components/modelRenderer';
-import TagsInput from '@/components/tagsInput';
-import { authFetch } from '@/src/authFetch';
-import { UploadOutlined } from '@ant-design/icons';
-import { Steps, Form, Input, Button, Row, Col, Space, Divider, Upload, Flex, Typography, Select, SelectProps, Tag, UploadFile, UploadProps, Spin } from 'antd';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import ModelRenderer from "@/components/modelRenderer";
+import SampleMetadataDisplay from "@/components/sampleMetadataDisplay";
+import { authFetch } from "@/src/authFetch";
+import { UploadOutlined } from "@ant-design/icons";
+import { Steps, Form, Input, Button, Space, Divider, Upload, Flex, Typography, Select, SelectProps, Tag, UploadProps, Spin, Result, Alert } from "antd";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 const { TextArea } = Input;
 const { Dragger } = Upload;
 
 interface Metadata {
-    name: string;
-    description?: string;
-    tags: string[];
+	name: string;
+	description?: string;
+	tags?: string[];
+	publicationStatus: number;
 }
 interface ModelDTO {
-    model: string;
+	modelFile: string;
 }
 interface JobStatus<T> {
-    id: string;
-    status: number;
-    data: T;
+	id: string;
+	status: number;
+	data: T;
 }
 
 interface MetadataStepProps {
-    metadata?: Metadata;
-    setMetadata: React.Dispatch<React.SetStateAction<any>>;
-    nextStep: () => void;
+	metadata?: Metadata;
+	setMetadata: React.Dispatch<React.SetStateAction<any>>;
+	nextStep: () => void;
 }
 interface ModelStepProps {
-    nextStep: () => void;
-    previousStep: () => void;
+	modelFile?: string;
+	setModelFile: React.Dispatch<React.SetStateAction<any>>;
+	setModelID: React.Dispatch<React.SetStateAction<any>>;
+	nextStep: () => void;
+	previousStep: () => void;
 }
 interface SummaryStepProps {
-    metadata?: Metadata;
-    finish: () => void;
-    previousStep: () => void;
+	metadata?: Metadata;
+	modelFile?: string;
+	finish: () => void;
+	previousStep: () => void;
 }
+
+let timeout: ReturnType<typeof setTimeout> | undefined;
+let currentValue: string;
+
+const fetchTags = (value: string, callback: (data: { value: string; text: string }[]) => void) => {
+	if (timeout) {
+		clearTimeout(timeout);
+		timeout = undefined;
+	}
+
+	currentValue = value;
+
+	const searchTags = () => {
+		authFetch(`http://localhost:5047/api/tags/${value}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => response.json())
+			.then((responseData) => {
+				if (currentValue !== value) return;
+
+				console.log(responseData);
+
+				const data = responseData.map((item: any) => ({
+					value: item["value"],
+					text: item["value"],
+				}));
+
+				callback(data);
+			});
+	};
+
+	if (value) {
+		timeout = setTimeout(searchTags, 300);
+	} else {
+		callback([]);
+	}
+};
 
 //  Auxiliary components
 const MetadataStep: React.FC<MetadataStepProps> = ({ metadata, nextStep, setMetadata }) => {
-    const [form] = Form.useForm();
+	const [form] = Form.useForm();
+	const [searchData, setSearchData] = useState<SelectProps["options"]>();
+	const [searchValue, setSearchValue] = useState<string>();
 
-    const onFinish = (values: Metadata) => {
-        setMetadata(values);
-        nextStep();
-    };
-    const tagOptions: SelectProps['options'] = [
-        {
-            value: 'Alex',
-            label: 'Alex',
-        },
-        {
-            value: 'Carlos',
-            label: 'Carlos',
-        },
-        {
-            value: 'David',
-            label: 'David',
-        }
-    ];
+	const handleSearch = (newValue: string) => {
+		if (newValue.length < 2) {
+			setSearchData([]);
+		} else fetchTags(newValue, setSearchData);
+	};
+	const handleChange = (newValue: string) => {
+		setSearchValue(newValue);
+	};
+	const onFinish = (values: Metadata) => {
+		setMetadata(values);
+		nextStep();
+	};
 
-    return (
-        <>
-            <Form
-                name="metadata-form"
-                form={form}
-                onFinish={onFinish}
-                initialValues={metadata}
-                autoComplete='off'
-                labelCol={{ span: 4 }}
-                wrapperCol={{ span: 20 }}
-            >
-                <Form.Item>
-                    <Space>
-                        <Button disabled={true}>
-                            Back
-                        </Button>
-                        <Button type="primary" htmlType='submit'>
-                            Next
-                        </Button>
-                    </Space>
-                </Form.Item>
-                <Form.Item name="name" label="Name" rules={[{ required: true, message: "Name cannot be empty" }]}>
-                    <Input />
-                </Form.Item>
-                <Form.Item name="description" label="Description">
-                    <TextArea rows={5} />
-                </Form.Item>
-                <Form.Item name="tags" label="Tags">
-                    <Select
-                        mode="tags"
-                        placeholder="Enter tags here"
-                        options={tagOptions}>
-                    </Select>
-                </Form.Item>
-            </Form>
-        </>
-    );
+	return (
+		<>
+			<Form name="metadata-form" form={form} onFinish={onFinish} initialValues={metadata} autoComplete="off" labelCol={{ span: 4 }} wrapperCol={{ span: 20 }}>
+				<Form.Item>
+					<Space>
+						<Button disabled={true}>Back</Button>
+						<Button type="primary" htmlType="submit">
+							Next
+						</Button>
+					</Space>
+				</Form.Item>
+				<Form.Item name="name" label="Name" rules={[{ required: true, message: "Name cannot be empty" }]}>
+					<Input />
+				</Form.Item>
+				<Form.Item name="description" label="Description">
+					<TextArea rows={5} />
+				</Form.Item>
+				<Form.Item name="tags" label="Tags">
+					<Select
+						mode="tags"
+						showSearch
+						value={searchValue}
+						placeholder="Enter tags here"
+						defaultActiveFirstOption={false}
+						filterOption={false}
+						onSearch={handleSearch}
+						onChange={handleChange}
+						notFoundContent={null}
+						options={(searchData || []).map((item) => ({ value: item.value, label: item.text }))}
+					/>
+				</Form.Item>
+				<Form.Item name="publicationStatus" label="Publication status">
+					<Select
+						options={[
+							{ value: "0", label: "Private" },
+							{ value: "1", label: "Public" },
+						]}
+						defaultValue={"0"}
+					/>
+				</Form.Item>
+			</Form>
+		</>
+	);
 };
 
-const ModelStep: React.FC<ModelStepProps> = ({ nextStep, previousStep }) => {
-    const [fileList, setFileList] = useState<UploadFile[]>([]);
-    const [jobStatus, setJobStatus] = useState<JobStatus<ModelDTO>>();
-    const [modelFile, setModelFile] = useState<string>();
-    let intervalID = useRef<NodeJS.Timeout>();
+const ModelStep: React.FC<ModelStepProps> = ({ modelFile, setModelFile, setModelID, nextStep, previousStep }) => {
+	const [jobStatus, setJobStatus] = useState<JobStatus<ModelDTO>>();
+	let intervalID = useRef<NodeJS.Timeout>();
 
-    const pollJobStatus = useCallback(() => {
-        const data = new FormData();
+	const pollJobStatus = useCallback(() => {
+		if (!jobStatus) return;
 
-        authFetch(
-            `http://localhost:5047/api/model/job-${jobStatus.id}`,
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body)
-            }
-        ).then((response: Response) => response.json()
-            .then((data: JobStatus<ModelDTO>) => {
-                if (data.status === 1)
-                    setJobStatus(data);
+		authFetch(`http://localhost:5047/api/models/jobs/${jobStatus.id}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response: Response) => response.json())
+			.then((jobStatus: JobStatus<ModelDTO>) => {
+				if (jobStatus.status === 1) setJobStatus(jobStatus);
+			});
+	}, [jobStatus?.id]);
+	const onFinish = () => {
+		nextStep();
+	};
 
-            }));
-    }, [jobStatus?.id]);
+	useEffect(() => {
+		if (!jobStatus) return;
 
-    useEffect(() => {
-        if (!jobStatus) return;
+		switch (jobStatus.status) {
+			case 0:
+				{
+					intervalID.current = setInterval(pollJobStatus, 5000);
+				}
+				break;
+			case 1:
+				{
+					setModelFile(jobStatus.data.modelFile);
+					setModelID(jobStatus.id);
+					clearInterval(intervalID.current);
+				}
+				break;
+		}
+	}, [jobStatus, pollJobStatus]);
 
-        switch (jobStatus.status) {
-            case 0: {
-                intervalID.current = setInterval(pollJobStatus, 1000);
-            } break;
-            case 1: {
-                setModelFile(jobStatus.data.model);
-                clearInterval(intervalID.current);
-            } break;
-        }
+	const props: UploadProps = {
+		name: "file",
+		accept: "image/jpg, image/jpeg, image/png",
+		customRequest: ({ file, onSuccess }) => {
+			const formData = new FormData();
 
-    }, [jobStatus, pollJobStatus]);
+			formData.append("ModelImage", file);
 
-    const props: UploadProps = {
-        accept: 'image/jpg, image/jpeg, image/png',
-        multiple: false,
-        maxCount: 1,
-        onRemove: (file) => {
-            //  In theory, there should only be 1 element            
-            setFileList([]);
-        },
-        beforeUpload: (file) => {
-            setFileList([...fileList, file]);
-            return false;
-        },
-        fileList: fileList
-    };
+			authFetch("http://localhost:5047/api/models/jobs", {
+				method: "POST",
+				body: formData,
+			})
+				.then((data) => data.json())
+				.then((jobStatus: JobStatus<ModelDTO>) => setJobStatus(jobStatus));
+		},
+		multiple: false,
+		maxCount: 1,
+	};
 
-    const onGenerateModel = () => {
-        authFetch(
-            "http://localhost:5047/api/model/start-job",
-            {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        ).then((response: Response) => response.json()
-            .then((data: JobStatus<ModelDTO>) => {
-                console.log("Got a response!", data);
-                setJobStatus(data);
-            }));
-    };
-    const onFinish = () => {
-        nextStep();
-    };
+	let draggerContent = (
+		<Dragger {...props}>
+			<p className="ant-upload-drag-icon">
+				<UploadOutlined />
+			</p>
+			<p className="ant-upload-text">Click or drag image to this area to upload</p>
+			<p className="ant-upload-hint">Only JPG, JPEG and PNG files supported. Make sure your background has as little details as possible.</p>
+		</Dragger>
+	);
 
-    return (
-        <>
-            <Space>
-                <Button onClick={() => previousStep()}>Back</Button>
-                <Button type="primary" disabled={true} onClick={() => onFinish()}>Next</Button>
-            </Space>
+	if (jobStatus && jobStatus.status === 0) draggerContent = <Spin tip={<b>Generating model...</b>}>{draggerContent}</Spin>;
 
-            <div style={{ paddingTop: 15, paddingBottom: 15 }} />
+	const modelReady = modelFile !== undefined;
 
-            <Dragger  {...props} style={{ maxHeight: 200 }}>
-                <p className="ant-upload-drag-icon">
-                    <UploadOutlined />
-                </p>
-                <p className="ant-upload-text">Click or drag image to this area to upload</p>
-                <p className="ant-upload-hint">
-                    Only JPG, JPEG and PNG files supported. Make sure your background has as little details as possible.
-                </p>
-            </Dragger>
+	return (
+		<Flex vertical gap="middle">
+			<Space>
+				<Button onClick={() => previousStep()}>Back</Button>
+				<Button type="primary" disabled={!modelReady} onClick={() => onFinish()}>
+					Next
+				</Button>
+			</Space>
 
-            <Flex justify='center' style={{ paddingTop: 20, paddingBottom: 20 }}>
-                <Button type="primary" onClick={onGenerateModel}>
-                    Generate model
-                </Button>
-            </Flex>
+			{draggerContent}
 
-            {jobStatus && jobStatus.status === 0 && <Spin tip="Generating model" />}
-            {jobStatus && jobStatus.status === 1 && <ModelRenderer model={modelFile} />}
-        </>
-    );
+			{modelReady && <ModelRenderer model={modelFile} />}
+		</Flex>
+	);
 };
 
-const SummaryStep: React.FC<SummaryStepProps> = ({ metadata, finish, previousStep }) => {
-    const tagsComponent = metadata?.tags.map((tag: string) => (<Tag key={tag}>{tag}</Tag>));
+const SummaryStep: React.FC<SummaryStepProps> = ({ metadata, modelFile, finish, previousStep }) => {
+	const tagsComponent = metadata?.tags?.map((tag: string) => <Tag key={tag}>{tag}</Tag>);
 
-    return (
-        <>
-            <Space>
-                <Button onClick={previousStep}>Back</Button>
-                <Button type="primary" onClick={previousStep}>Finish</Button>
-            </Space>
+	const capitalise = (string: string | undefined) => {
+		console.log(metadata);
+		if (!string) return undefined;
 
-            <div style={{ marginTop: 10, marginBottom: 10 }}>
-                <Text strong>Metadata</Text>
-            </div>
-            <Row>
-                <Col span={4}>
-                    <Text type="secondary">Name:</Text>
-                </Col>
-                <Col span={19} offset={1}>
-                    <Text>{metadata?.name ?? "No name"}</Text>
-                </Col>
-            </Row>
-            <Row>
-                <Col span={4}>
-                    <Text type="secondary">Description:</Text>
-                </Col>
-                <Col span={19} offset={1}>
-                    <Text>{metadata?.description ?? "No descrtipion"}</Text>
-                </Col>
-            </Row>
-            <Row>
-                <Col span={4}>
-                    <Text type="secondary">Tags:</Text>
-                </Col>
-                <Col span={19} offset={1}>
-                    {tagsComponent}
-                </Col>
-            </Row>
+		return string[0].toUpperCase() + string.slice(1);
+	};
 
-            <Divider />
+	console.log(metadata);
 
-            <div style={{ marginTop: 10, marginBottom: 10 }}>
-                <Text strong>3D Model</Text>
-            </div>
+	return (
+		<>
+			<Space>
+				<Button onClick={previousStep}>Back</Button>
+				<Button type="primary" onClick={finish}>
+					Finish
+				</Button>
+			</Space>
 
-            <ModelRenderer />
-        </>
-    );
+			<div style={{ marginTop: 10, marginBottom: 10 }}>
+				<Text strong>Metadata</Text>
+			</div>
+
+			{metadata ? <SampleMetadataDisplay {...metadata} /> : <Alert type="error" message="Couldn't load sample metadata" />}
+
+			{/* <Row>
+				<Col span={4}>
+					<Text type="secondary">Name:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					<Text>{metadata?.name ?? "No name"}</Text>
+				</Col>
+			</Row>
+			<Row>
+				<Col span={4}>
+					<Text type="secondary">Description:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					<Text>{metadata?.description ?? "No descrtipion"}</Text>
+				</Col>
+			</Row>
+			<Row>
+				<Col span={4}>
+					<Text type="secondary">Tags:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					{tagsComponent}
+				</Col>
+			</Row>
+			<Row>
+				<Col span={4}>
+					<Text type="secondary">Publication Status:</Text>
+				</Col>
+				<Col span={19} offset={1}>
+					<Text>{capitalise(metadata?.publicationStatus)}</Text>
+				</Col>
+			</Row> */}
+
+			<Divider />
+
+			<div style={{ marginTop: 10, marginBottom: 10 }}>
+				<Text strong>3D Model</Text>
+			</div>
+
+			<ModelRenderer model={modelFile} />
+		</>
+	);
 };
 
 //  Main component
 const CreateSampleForm: React.FC = () => {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [metadata, setMetadata] = useState();
+	const [currentStep, setCurrentStep] = useState(0);
+	const [metadata, setMetadata] = useState<Metadata>();
+	const [modelFile, setModelFile] = useState<string>();
+	const [modelID, setModelID] = useState<string>();
+	const [sampleID, setSampleID] = useState<number>();
+	const [formCompleted, setFormCompleted] = useState<boolean>(false);
+	const router = useRouter();
 
-    const nextStep = () => setCurrentStep(currentStep + 1);
-    const previousStep = () => setCurrentStep(currentStep - 1);
+	const nextStep = () => setCurrentStep(currentStep + 1);
+	const previousStep = () => setCurrentStep(currentStep - 1);
 
-    const onFinish = () => {
-        console.log("Finished!");
-    };
+	const onFinish = () => {
+		if (!metadata) {
+			console.error("Metadata is undefined in onFinish!");
+			return;
+		}
 
-    const steps = [
-        {
-            title: 'Metadata',
-            content: <MetadataStep metadata={metadata} setMetadata={setMetadata} nextStep={nextStep} />
-        },
-        {
-            title: '3D Model',
-            content: <ModelStep nextStep={nextStep} previousStep={previousStep} />
-        },
-        {
-            title: 'Summary',
-            content: <SummaryStep metadata={metadata} finish={onFinish} previousStep={previousStep} />
-        }
-    ];
+		authFetch("http://localhost:5047/api/samples", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				name: metadata.name,
+				description: metadata.description,
+				tags: metadata.tags,
+				publicationStatus: metadata.publicationStatus,
+				modelID: modelID,
+			}),
+		})
+			.then((response) => response.json())
+			.then((id: number) => {
+				setSampleID(id);
+				setFormCompleted(true);
+			});
+	};
+	const onViewCreatedSample = () => {
+		const id = sampleID;
+		router.push(`/dashboard/sample?id=${id}`);
+	};
 
-    return (
-        <>
-            <Row>
-                <Col span={12} offset={6}>
-                    <Steps current={currentStep} items={steps} style={{ paddingTop: 20, paddingBottom: 20 }} />
-                    <div style={{ paddingTop: 20, paddingBottom: 20 }}>
-                        {steps[currentStep].content}
-                    </div>
-                </Col>
-            </Row>
-        </>
-    );
+	const steps = [
+		{
+			title: "Metadata",
+			content: <MetadataStep metadata={metadata} setMetadata={setMetadata} nextStep={nextStep} />,
+		},
+		{
+			title: "3D Model",
+			content: <ModelStep modelFile={modelFile} setModelFile={setModelFile} setModelID={setModelID} nextStep={nextStep} previousStep={previousStep} />,
+		},
+		{
+			title: "Summary",
+			content: <SummaryStep metadata={metadata} modelFile={modelFile} finish={onFinish} previousStep={previousStep} />,
+		},
+	];
+
+	return (
+		<>
+			{formCompleted ? (
+				<Result
+					status="success"
+					title="Sample created successfully"
+					extra={[
+						<Button type="primary" key="show-sample" onClick={onViewCreatedSample}>
+							Go to sample
+						</Button>,
+					]}
+				/>
+			) : (
+				<>
+					<Title>Create sample</Title>
+					<Steps current={currentStep} items={steps} style={{ paddingTop: 20, paddingBottom: 20 }} />
+					<div style={{ paddingTop: 20, paddingBottom: 20 }}>{steps[currentStep].content}</div>
+				</>
+			)}
+		</>
+	);
 };
 
 export default CreateSampleForm;

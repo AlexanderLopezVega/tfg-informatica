@@ -8,16 +8,19 @@ import { Alert, message } from "antd";
 interface ModelProps {
 	model: string;
 	onError?: (message: string) => void;
-};
+}
 interface ModelRendererProps {
 	model?: string;
 	height?: number;
-};
+}
 
 const Model: React.FC<ModelProps> = ({ model, onError }) => {
 	const modelRef = useRef<THREE.Group | null>(null);
 
 	useEffect(() => {
+		//	Assume there is always only at most 1 model
+		if (modelRef.current && modelRef.current?.children.length > 0) modelRef.current?.remove(modelRef.current.children[0]);
+
 		if (!model) return;
 
 		const loader = new OBJLoader();
@@ -25,21 +28,18 @@ const Model: React.FC<ModelProps> = ({ model, onError }) => {
 		try {
 			const obj = loader.parse(model);
 
-			if (modelRef.current)
-				modelRef.current.add(obj);
+			if (modelRef.current) modelRef.current.add(obj);
 		} catch (error) {
 			console.error(error);
 			onError?.("An error ocurred while loading the model");
 		}
-
 	}, [model, onError]);
 
 	return <group ref={modelRef} />;
 };
 
 const ModelRenderer: React.FC<ModelRendererProps> = ({ model, height }) => {
-	if (!model)
-		return <Alert message="Could not load model" type="error" />
+	if (!model) return <Alert message="Could not load model" type="error" />;
 
 	const [messageAPI, contextHolder] = message.useMessage();
 
@@ -55,7 +55,7 @@ const ModelRenderer: React.FC<ModelRendererProps> = ({ model, height }) => {
 	return (
 		<div style={{ height }}>
 			{contextHolder}
-			<Canvas camera={{ position: [0, 0, -3], fov: 50 }} style={{ background: "rgb(220, 220, 220)" }}>
+			<Canvas camera={{ position: [0, 0, -3], fov: 50 }} style={{ background: "rgb(240, 240, 240)" }}>
 				<ambientLight intensity={1} />
 
 				<pointLight position={[-2, -2, -2]} intensity={10} />
