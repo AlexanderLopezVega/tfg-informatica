@@ -10,6 +10,8 @@ import { CollectionDTO, SampleDTO, SamplePreviewDTO } from '../../lib/Types';
 const { Search } = Input;
 const { Title } = Typography;	
 
+type cardData = (Partial<SamplePreviewDTO | CollectionDTO> & {image?: string});
+
 enum SearchType {
 	Sample,
 	Collection,
@@ -30,14 +32,32 @@ const cardStyle: React.CSSProperties = {
 	height: "100%",
 };
 
-type sampleData = (Partial<SamplePreviewDTO> & {image?: string});
+type cardsWithMemoProps = { elements: cardData[], searchType: SearchType };
 
-const initialContent: sampleData[] = [];
+const CardsWithMemo = React.memo(({ elements, searchType }: cardsWithMemoProps) => <Row gutter={[15, 15]}>
+{
+	elements?.map((e: any, i: number) => {
+		return <React.Fragment key={i}>
+			{
+			/// Check Card type here, easier
+			searchType === SearchType.Sample 
+				? <SampleCard {...e as SampleDTO} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
+				: <CollectionCard {...e as CollectionDTO} columnsSizes={columnsSizes} cardStyle={cardStyle} /> 
+			}
+		</React.Fragment>
+	})
+}
+</Row>, (oldProps, newProps) => {
+	return oldProps.elements === newProps.elements
+});
+
+
+const initialContent: cardData[] = [];
 for(var i = 0; i < 10; ++i) initialContent.push({ name: `Element ${i}`, description: `description text`, image: `` });
 
 const SearchPage: React.FC = () => {
 	const [searchType, setSearchType] = useState<SearchType>(SearchType.Sample);
-	const [elements, setElements] = useState<sampleData[]>(initialContent);
+	const [elements, setElements] = useState<cardData[]>(initialContent);
 	const [searchQuery, setSearchQuery] = useState<string>();
 	const [loading, setLoading] = useState<boolean>(false);
 
@@ -65,7 +85,13 @@ const SearchPage: React.FC = () => {
 		setLoading(false);
 	};
 
-	const onSearchTypeChange = ({ target: { value } }: RadioChangeEvent) => setSearchType(value);
+	const onSearchTypeChange = ({ target: { value } }: RadioChangeEvent) => { 
+		if(searchType === value) return;
+		setSearchType(value);
+		// const initialContent: cardData[] = [];
+		// for(var i = 0; i < 10; ++i) initialContent.push({ name: `Element CHANGED ${i}`, description: `description CHANGED text`, image: `` });
+		// setElements(initialContent)
+	};
 
 	const onSearch = (value: string) => {
 		if (!value || value === "" || value === searchQuery) return;
@@ -86,21 +112,7 @@ const SearchPage: React.FC = () => {
 			<Divider />
 			{loading 
 				?	<Spin size="large" tip="Loading..." />
-				: <Row gutter={[15, 15]}>
-						{
-							elements?.map((e: any, i: number) => {
-								return <React.Fragment key={i}>
-									{
-									/// Check Card type here, easier
-									searchType === SearchType.Sample 
-										? <SampleCard {...e as SampleDTO} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
-										: <CollectionCard {...e as CollectionDTO} columnsSizes={columnsSizes} cardStyle={cardStyle} /> 
-									}
-								</React.Fragment>
-							}
-						)
-					}
-				</Row>
+				: <CardsWithMemo elements={elements} searchType={searchType}/>
 			}
 		</>
 	);
