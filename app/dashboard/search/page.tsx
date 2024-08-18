@@ -87,13 +87,16 @@ for (var i = 0; i < 43; ++i)
 const pageSize = 12;
 
 const SearchPage: React.FC = () => {
+
+	const getPagination = (elements: any[], newPage: number) => elements.slice(pageSize * (newPage - 1), pageSize * newPage)
+
   const [searchType, setSearchType] = useState<SearchType>(SearchType.Sample);
   const [elements, setElements] = useState<cardData[]>(initialContent);
   const [searchQuery, setSearchQuery] = useState<string>();
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [currentSlice, setCurrentSlice] = useState<cardData[]>(
-    initialContent.slice(pageSize * (currentPage - 1), pageSize * currentPage)
+    getPagination(initialContent, 1)
   );
   const totalPages = Math.ceil(Math.max(elements.length / pageSize, 1));
 
@@ -115,6 +118,13 @@ const SearchPage: React.FC = () => {
         loadData(json);
       });
   }, [searchQuery]);
+
+	useEffect(() => {
+		setCurrentPage(0);
+		setCurrentSlice(
+			getPagination(elements, 1)
+		);
+	}, [elements])
 
   const loadData = (data: SamplePreviewDTO[]) => {
     setElements(data as any);
@@ -160,7 +170,7 @@ const SearchPage: React.FC = () => {
                 if (newPage === currentPage) return;
                 setCurrentPage(newPage);
                 setCurrentSlice(
-                  elements.slice(pageSize * (newPage - 1), pageSize * newPage)
+									getPagination(elements, newPage)
                 );
               }}
               defaultCurrent={currentPage}
