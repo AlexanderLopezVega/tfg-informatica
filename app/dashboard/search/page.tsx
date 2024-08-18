@@ -14,17 +14,19 @@ import { RadioChangeEvent } from 'antd/lib';
 import React, { useEffect, useState } from 'react';
 import { CollectionCard } from '../../components/collectionCard';
 import { SampleCard } from '../../components/sampleCard';
-import { CollectionDTO, SampleDTO, SamplePreviewDTO } from '../../lib/Types';
+import { CollectionDTO, CollectionPreviewDTO, SamplePreviewDTO } from '../../lib/Types';
 
 const { Search } = Input;
 const { Title } = Typography;
 
 type cardData = Partial<SamplePreviewDTO | CollectionDTO> & { image?: string };
 
-enum SearchType {
-  Sample,
-  Collection,
-}
+const SearchType = {
+  Sample: "Sample",
+  Collection: "Collection",
+} as const;
+
+type SearchTypeType = keyof typeof SearchType;
 
 const columnsSizes = {
   xs: 24 / 1,
@@ -41,26 +43,26 @@ const cardStyle: React.CSSProperties = {
   height: '100%',
 };
 
-type cardsWithMemoProps = { elements: cardData[]; searchType: SearchType };
+type cardsWithMemoProps = { elements: cardData[]; };
 
 const CardsWithMemo = React.memo(
-  ({ elements, searchType }: cardsWithMemoProps) => (
+  ({ elements }: cardsWithMemoProps) => (
     <Row gutter={[15, 15]}>
       {elements?.map((e: any, i: number) => {
         return (
           <React.Fragment key={i}>
             {
               /// Check Card type here, easier
-              searchType === SearchType.Sample ? (
+              e.sampleList === undefined ? (
                 <SampleCard
-                  {...(e as SampleDTO)}
+                  {...(e as SamplePreviewDTO)}
                   columnsSizes={columnsSizes}
                   cardStyle={cardStyle}
                   imageFallback={imageFallback}
                 />
               ) : (
                 <CollectionCard
-                  {...(e as CollectionDTO)}
+                  {...(e as CollectionPreviewDTO)}
                   columnsSizes={columnsSizes}
                   cardStyle={cardStyle}
                 />
@@ -87,10 +89,10 @@ for (var i = 0; i < 43; ++i)
 const pageSize = 12;
 
 const SearchPage: React.FC = () => {
+  const getPagination = (elements: any[], newPage: number) =>
+    elements.slice(pageSize * (newPage - 1), pageSize * newPage);
 
-	const getPagination = (elements: any[], newPage: number) => elements.slice(pageSize * (newPage - 1), pageSize * newPage)
-
-  const [searchType, setSearchType] = useState<SearchType>(SearchType.Sample);
+  const [searchType, setSearchType] = useState<SearchTypeType>(SearchType.Sample);
   const [elements, setElements] = useState<cardData[]>(initialContent);
   const [searchQuery, setSearchQuery] = useState<string>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -102,11 +104,11 @@ const SearchPage: React.FC = () => {
 
   useEffect(() => {
     if (!searchQuery || searchQuery.length === 0) return;
-
+		setLoading(true);
     const originalQuery = searchQuery;
 
     fetch(
-      'http://localhost:5047/api/samples/previews?' +
+      `http://localhost:5047/api/${searchType}/previews?` +
         new URLSearchParams({
           name: searchQuery,
         })
@@ -117,14 +119,12 @@ const SearchPage: React.FC = () => {
 
         loadData(json);
       });
-  }, [searchQuery]);
+  }, [searchQuery, searchType]);
 
-	useEffect(() => {
-		setCurrentPage(0);
-		setCurrentSlice(
-			getPagination(elements, 1)
-		);
-	}, [elements])
+  useEffect(() => {
+    setCurrentPage(0);
+    setCurrentSlice(getPagination(elements, 1));
+  }, [elements]);
 
   const loadData = (data: SamplePreviewDTO[]) => {
     setElements(data as any);
@@ -169,9 +169,7 @@ const SearchPage: React.FC = () => {
               onChange={(newPage) => {
                 if (newPage === currentPage) return;
                 setCurrentPage(newPage);
-                setCurrentSlice(
-									getPagination(elements, newPage)
-                );
+                setCurrentSlice(getPagination(elements, newPage));
               }}
               defaultCurrent={currentPage}
               pageSize={pageSize}
@@ -188,7 +186,7 @@ const SearchPage: React.FC = () => {
         <Spin size='large' tip='Loading...' />
       ) : (
         <>
-          <CardsWithMemo elements={currentSlice} searchType={searchType} />
+          <CardsWithMemo elements={currentSlice} />
         </>
       )}
     </>
