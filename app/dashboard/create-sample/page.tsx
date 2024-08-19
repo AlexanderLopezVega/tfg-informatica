@@ -136,13 +136,12 @@ const MetadataStep: React.FC<MetadataStepProps> = ({ metadata, nextStep, setMeta
 						options={(searchData || []).map((item) => ({ value: item.value, label: item.text }))}
 					/>
 				</Form.Item>
-				<Form.Item name="publicationStatus" label="Publication status">
+				<Form.Item name="publicationStatus" label="Publication status" initialValue={"0"}>
 					<Select
 						options={[
 							{ value: "0", label: "Private" },
 							{ value: "1", label: "Public" },
 						]}
-						defaultValue={"0"}
 					/>
 				</Form.Item>
 			</Form>
@@ -330,6 +329,8 @@ const CreateSampleForm: React.FC = () => {
 			return;
 		}
 
+		console.log("Finished creation step");
+
 		authFetch("http://localhost:5047/api/samples", {
 			method: "POST",
 			headers: {
@@ -343,8 +344,13 @@ const CreateSampleForm: React.FC = () => {
 				modelID: modelID,
 			}),
 		})
-			.then((response) => response.json())
+			.then((response) => {
+				console.log(response);
+
+				return response.json();
+			})
 			.then((id: number) => {
+				console.log(id);
 				setSampleID(id);
 				setFormCompleted(true);
 			});
