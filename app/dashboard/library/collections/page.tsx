@@ -46,37 +46,34 @@ const Collections: React.FC = () => {
 	const [modalConfirmLoading, setModalConfirmLoading] = useState(false);
 
 	const loadCollections = useCallback(() => {
-		getToken().then((cookie) => {
-			if (!cookie) return;
-
-			const userID = JSON.parse(cookie.value)["userID"];
-
-			authFetch(
-				"http://localhost:5047/api/collections/previews?" +
-					new URLSearchParams({
-						user: userID,
-					}),
-				{
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-					},
+		authFetch("http://localhost:5047/api/collections/previews", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not fetch collection previews");
+					return undefined;
 				}
-			)
-				.then((response) => response.json())
-				.then((data: CollectionPreview[]) => {
-					setTableData(
-						data.map(
-							(value: CollectionPreview): TableEntry => ({
-								key: value.id,
-								name: value.name,
-								description: value.description ?? "No description provided",
-							})
-						)
-					);
-				})
-				.finally(() => setLoading(false));
-		});
+
+				return response.json();
+			})
+			.then((data: CollectionPreview[]) => {
+				if (!data) return;
+
+				setTableData(
+					data.map(
+						(value: CollectionPreview): TableEntry => ({
+							key: value.id,
+							name: value.name,
+							description: value.description ?? "No description provided",
+						})
+					)
+				);
+			})
+			.finally(() => setLoading(false));
 	}, []);
 
 	const onCreateCollection = () => {

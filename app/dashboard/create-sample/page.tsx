@@ -2,6 +2,7 @@
 
 import ModelRenderer from "@/components/modelRenderer";
 import SampleMetadataDisplay from "@/components/sampleMetadataDisplay";
+import { CreateSampleDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { UploadOutlined } from "@ant-design/icons";
 import { Steps, Form, Input, Button, Space, Divider, Upload, Flex, Typography, Select, SelectProps, Tag, UploadProps, Spin, Result, Alert } from "antd";
@@ -328,29 +329,43 @@ const CreateSampleForm: React.FC = () => {
 			console.error("Metadata is undefined in onFinish!");
 			return;
 		}
+		if (!modelID) {
+			console.error("Model ID is undefined in onFinish!");
+			return;
+		}
 
-		console.log("Finished creation step");
-
+		const createSampleDTO: CreateSampleDTO = {
+			name: metadata.name,
+			description: metadata.description,
+			tags: metadata.tags,
+			publicationStatus: Number(metadata.publicationStatus),
+			modelID: modelID,
+		};
+		
+		console.log("Finished creation step", JSON.stringify(createSampleDTO));
+		
 		authFetch("http://localhost:5047/api/samples", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({
-				name: metadata.name,
-				description: metadata.description,
-				tags: metadata.tags,
-				publicationStatus: metadata.publicationStatus,
-				modelID: modelID,
-			}),
+			body: JSON.stringify(createSampleDTO),
 		})
 			.then((response) => {
-				console.log(response);
+				if (!response.ok) {
+					console.error("Could not create sample");
+					return undefined;
+				}
 
 				return response.json();
 			})
-			.then((id: number) => {
+			.then((data: undefined | number) => {
+				if (!data) return;
+
+				const id: number = data;
+
 				console.log(id);
+
 				setSampleID(id);
 				setFormCompleted(true);
 			});

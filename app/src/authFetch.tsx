@@ -16,8 +16,7 @@ export const authFetch = async (url: string | URL | globalThis.Request, init: Re
 
 	console.log("> Cookie is valid");
 
-	const tokenString = JSON.parse(cookie.value);
-	const token = tokenString["token"];
+	const token = cookie.value;
 
 	console.log("> Token: ", token);
 

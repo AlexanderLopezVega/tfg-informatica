@@ -8,6 +8,7 @@ import { Button, Card, Form, Input, Tabs, Typography } from "antd/lib";
 import { geekblue } from "@ant-design/colors";
 import "antd/dist/reset.css";
 import "./login.css";
+import { AuthLoginDTO } from "./lib/Types";
 
 const { Title } = Typography;
 
@@ -34,10 +35,10 @@ const LoginForm: React.FC<FormProps> = ({ setLoading, showError }) => {
 				passwordHash: values.password,
 			}),
 		})
-			.then((data) => {
-				if (data.ok)
-					data.json().then((data) => {
-						storeToken(data).then(() => router.push("dashboard"));
+			.then((response) => {
+				if (response.ok)
+					response.json().then((data: AuthLoginDTO) => {
+						storeToken(data.token).then(() => router.push("dashboard"));
 					});
 				else showError("Invalid username or password");
 			})
@@ -87,8 +88,8 @@ const RegisterForm: React.FC<FormProps> = ({ setLoading, showError }) => {
 			}),
 		})
 			.then((data) => data.json())
-			.then((data: { token: string, userID: number }) => {
-				storeToken(data).then(() => router.push("dashboard"));
+			.then((data: AuthLoginDTO) => {
+				storeToken(data.token).then(() => router.push("dashboard"));
 			})
 			.catch(() => {
 				showError("Could not contact the server");

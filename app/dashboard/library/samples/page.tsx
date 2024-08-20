@@ -48,37 +48,34 @@ const Samples: React.FC = () => {
 	const [modalConfirmLoading, setModalConfirmLoading] = useState(false);
 
 	const loadSamples = useCallback(() => {
-		getToken().then((cookie) => {
-			if (!cookie) return;
-
-			const userID = JSON.parse(cookie.value)["userID"];
-
-			authFetch(
-				"http://localhost:5047/api/samples/previews?" +
-					new URLSearchParams({
-						user: userID,
-					}),
-				{
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-					},
+		authFetch("http://localhost:5047/api/samples/previews", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not load sample previews");
+					return undefined;
 				}
-			)
-				.then((response) => response.json())
-				.then((data: SamplePreview[]) => {
-					setTableData(
-						data.map(
-							(value: SamplePreview): TableEntry => ({
-								key: value.id,
-								name: value.name,
-								description: value.description ?? "No description provided",
-							})
-						)
-					);
-				})
-				.finally(() => setLoading(false));
-		});
+
+				return response.json();
+			})
+			.then((data: SamplePreview[]) => {
+				if (data === undefined) return;
+
+				setTableData(
+					data.map(
+						(value: SamplePreview): TableEntry => ({
+							key: value.id,
+							name: value.name,
+							description: value.description ?? "No description provided",
+						})
+					)
+				);
+			})
+			.finally(() => setLoading(false));
 	}, []);
 
 	const onCreateSample = () => {
@@ -104,7 +101,12 @@ const Samples: React.FC = () => {
 			},
 			body: JSON.stringify(body),
 		})
-			.then(() => {
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not delete samples");
+					return undefined;
+				}
+
 				messageApi.open({
 					type: "success",
 					content: "Samples successfully deleted",
@@ -128,9 +130,7 @@ const Samples: React.FC = () => {
 		<>
 			{contextHolder}
 			<Flex vertical={true} gap="middle">
-				<Title>
-					Samples
-				</Title>
+				<Title>Samples</Title>
 				<Space>
 					<Button type="primary" icon={<FileAddOutlined />} onClick={onCreateSample}>
 						Create

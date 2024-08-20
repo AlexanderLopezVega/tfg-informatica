@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteToken, getToken } from "@/actions";
+import { UserDTO, UserProfileDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { Alert, Button, Descriptions, Divider, Flex, Input, Modal, Space, Typography } from "antd";
@@ -22,22 +23,30 @@ const ProfilePage: React.FC = () => {
 	const router = useRouter();
 
 	useEffect(() => {
-		getToken()
-			.then((cookie) => {
-				if (!cookie) {
-					console.error("Could not read cookie ", cookie);
-					return;
+		authFetch("http://localhost:5047/api/user", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Couldn't retrieve user ID");
+					return undefined;
 				}
 
-				const userID = JSON.parse(cookie.value)["userID"];
-
-				setUserID(userID);
+				return response.json();
 			})
-			.catch();
+			.then((data: UserDTO) => {
+				if (data === undefined) return;
+
+				setUserID(data.userID);
+			});
 	}, []);
 	useEffect(() => {
 		if (!userID) return;
-		console.log(userID);
+
+		console.log(`Fetching user ${userID}'s profile data`);
 
 		authFetch(`http://localhost:5047/api/users/${userID}`, {
 			method: "GET",
@@ -45,8 +54,15 @@ const ProfilePage: React.FC = () => {
 				"Content-Type": "application/json",
 			},
 		})
-			.then((response) => response.json())
-			.then((data) => setProfileData(data));
+			.then((response) => {
+				if (!response) {
+					console.error("Could not fetch user profile data");
+					return undefined;
+				}
+
+				return response.json();
+			})
+			.then((data: UserProfileDTO) => setProfileData(data));
 	}, [userID, setProfileData]);
 
 	if (!profileData) return <Alert type="warning" message="Could not load user data" />;

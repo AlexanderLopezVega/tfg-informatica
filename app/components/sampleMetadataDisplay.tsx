@@ -23,7 +23,7 @@ const SampleMetadataDisplay: React.FC<SampleMetadataDisplayProps> = ({ name, des
 		{
 			key: "tags",
 			label: "Tags",
-			children: tags?.map((tag: string) => <Tag key={tag}>{tag}</Tag>),
+			children: tags ? tags.map((tag: string) => <Tag key={tag}>{tag}</Tag>) : <p>No tags</p>,
 		},
 		{
 			key: "publicationStatus",
