@@ -5,24 +5,24 @@ type Foo = {
 };
 
 export const authFetch = async (url: string | URL | globalThis.Request, init: RequestInit & { headers?: Foo }) => {
-	console.log("> Init headers (first): ", init.headers);
+	// console.log("> Init headers (first): ", init.headers);
 
 	//  Fetch authentication token
-	console.log("> Fetching cookie");
+	// console.log("> Fetching cookie");
 	const cookie = await getToken();
 
 	//  Raise error if not found cookie or token
 	if (!cookie || !cookie.value) throw new Error("Authorization missing");
 
-	console.log("> Cookie is valid");
+	// console.log("> Cookie is valid");
 
 	const token = cookie.value;
 
-	console.log("> Token: ", token);
+	// console.log("> Token: ", token);
 
 	//  Add authentication header to init
-	console.log("> Init: ", init);
-	console.log("> Init headers: ", init.headers);
+	// console.log("> Init: ", init);
+	// console.log("> Init headers: ", init.headers);
 
 	const requestHeaders = new Headers();
 
@@ -34,13 +34,13 @@ export const authFetch = async (url: string | URL | globalThis.Request, init: Re
 
 	// requestHeaders.set("Authorization", `Bearer ${token}`);
 
-	console.log("> New request headers: ", requestHeaders.get("Authorization"));
+	// console.log("> New request headers: ", requestHeaders.get("Authorization"));
 
 	init.headers = requestHeaders;
 
-	console.log("> Init headers: ", init.headers);
+	// console.log("> Init headers: ", init.headers);
 
-	console.log("> Auth fetch url and init: ", url, init);
+	// console.log("> Auth fetch url and init: ", url, init);
 
 	//  Perform fetch
 	return fetch(url, init);

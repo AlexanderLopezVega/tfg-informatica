@@ -1,10 +1,10 @@
 "use client";
 
-import { deleteToken, getToken } from "@/actions";
+import { deleteToken } from "@/actions";
 import { UserDTO, UserProfileDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import { Alert, Button, Descriptions, Divider, Flex, Input, Modal, Space, Typography } from "antd";
+import { Alert, Button, Descriptions, Divider, Flex, Input, Modal, Skeleton, Space, Typography } from "antd";
 import { DescriptionsProps } from "antd/lib";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -18,11 +18,23 @@ interface ProfileData {
 const ProfilePage: React.FC = () => {
 	const [userID, setUserID] = useState<number>();
 	const [profileData, setProfileData] = useState<ProfileData>();
+	const [profileDataLoading, setProfileDataLoading] = useState<boolean>(true);
 	const [modalOpen, setModalOpen] = useState<boolean>(false);
 	const [isConfirmValid, setIsConfirmValid] = useState<boolean>(false);
 	const router = useRouter();
 
+	const items: DescriptionsProps["items"] = profileData
+		? [
+				{
+					key: "username",
+					label: "Username",
+					children: <p>{profileData.username}</p>,
+				},
+		  ]
+		: [];
+
 	useEffect(() => {
+		setProfileDataLoading(true);
 		authFetch("http://localhost:5047/api/user", {
 			method: "GET",
 			headers: {
@@ -41,6 +53,9 @@ const ProfilePage: React.FC = () => {
 				if (data === undefined) return;
 
 				setUserID(data.userID);
+			})
+			.finally(() => {
+				setProfileDataLoading(false);
 			});
 	}, []);
 	useEffect(() => {
@@ -48,6 +63,7 @@ const ProfilePage: React.FC = () => {
 
 		console.log(`Fetching user ${userID}'s profile data`);
 
+		setProfileDataLoading(true);
 		authFetch(`http://localhost:5047/api/users/${userID}`, {
 			method: "GET",
 			headers: {
@@ -55,28 +71,29 @@ const ProfilePage: React.FC = () => {
 			},
 		})
 			.then((response) => {
-				if (!response) {
+				if (!response.ok) {
 					console.error("Could not fetch user profile data");
 					return undefined;
 				}
 
 				return response.json();
 			})
-			.then((data: UserProfileDTO) => setProfileData(data));
+			.then((data: UserProfileDTO) => {
+				if (!data) return;
+
+				setProfileData(data);
+			})
+			.finally(() => {
+				setProfileDataLoading(false);
+			});
 	}, [userID, setProfileData]);
 
-	if (!profileData) return <Alert type="warning" message="Could not load user data" />;
-
+	const onEditAccountButtonClicked = () => router.push("/dashboard/profile/edit");
+	const onDeleteAccountButtonClicked = () => showModal();
 	const hideModal = () => setModalOpen(false);
 	const showModal = () => setModalOpen(true);
-	const handleConfirmUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
-		const username = event.target.value;
-		console.log(username === profileData.username);
-
-		setIsConfirmValid(username === profileData.username);
-	};
+	const handleConfirmUsernameChange = (event: ChangeEvent<HTMLInputElement>) => profileData && setIsConfirmValid(event.target.value === profileData.username);
 	const onConfirmDeleteAccount = () => {
-		console.log(`deleting account ${userID}`);
 		if (!userID) return;
 
 		authFetch(`http://localhost:5047/api/users/${userID}`, {
@@ -98,50 +115,55 @@ const ProfilePage: React.FC = () => {
 			.catch();
 	};
 
-	const items: DescriptionsProps["items"] = [
-		{
-			key: "username",
-			label: "Username",
-			children: <p>{profileData.username}</p>,
-		},
-	];
-
 	return (
 		<>
-			<Title>{profileData.username}'s Profile</Title>
-			<Descriptions items={items} column={1} />
-			<Divider />
-			<Space>
-				<Button danger type="primary" onClick={showModal}>
-					Delete account
-				</Button>
-			</Space>
-			<Modal
-				title={
+			{profileData ? (
+				<>
+					<Title>{profileData.username}'s Profile</Title>
+					<Descriptions items={items} column={1} />
+					<Divider />
 					<Space>
-						<ExclamationCircleOutlined style={{ color: "red" }} />
-						<p style={{ margin: 0 }}>Delete account</p>
-					</Space>
-				}
-				open={modalOpen}
-				closable
-				centered
-				onCancel={hideModal}
-				footer={
-					<Space>
-						<Button onClick={hideModal}>Cancel</Button>
-						<Button danger type="primary" disabled={!isConfirmValid} onClick={onConfirmDeleteAccount}>
+						<Button type="primary" onClick={onEditAccountButtonClicked}>
+							Edit account
+						</Button>
+						<Button danger type="primary" onClick={onDeleteAccountButtonClicked}>
 							Delete account
 						</Button>
 					</Space>
-				}
-			>
-				<Flex vertical style={{ padding: 20 }}>
-					<p>Are you sure you want to delete your account? This process is irreversible</p>
-					<p>Write your username here to make sure</p>
-					<Input placeholder={profileData.username} onChange={handleConfirmUsernameChange} />
-				</Flex>
-			</Modal>
+
+					{/* Delete account modal */}
+					<Modal
+						title={
+							<Space>
+								<ExclamationCircleOutlined style={{ color: "red" }} />
+								<p style={{ margin: 0 }}>Delete account</p>
+							</Space>
+						}
+						open={modalOpen}
+						closable
+						centered
+						onCancel={hideModal}
+						footer={
+							<Space>
+								<Button onClick={hideModal}>Cancel</Button>
+								<Button danger type="primary" disabled={!isConfirmValid} onClick={onConfirmDeleteAccount}>
+									Delete account
+								</Button>
+							</Space>
+						}
+					>
+						<Flex vertical style={{ padding: 20 }}>
+							<p>Are you sure you want to delete your account? This process is irreversible</p>
+							<p>Write your username here to make sure</p>
+							<Input placeholder={profileData.username} onChange={handleConfirmUsernameChange} />
+						</Flex>
+					</Modal>
+				</>
+			) : profileDataLoading ? (
+				<Skeleton active />
+			) : (
+				<Alert type="warning" message="Could not load user data" />
+			)}
 		</>
 	);
 };

@@ -23,7 +23,7 @@ const SampleMetadataDisplay: React.FC<SampleMetadataDisplayProps> = ({ name, des
 		{
 			key: "tags",
 			label: "Tags",
-			children: tags ? tags.map((tag: string) => <Tag key={tag}>{tag}</Tag>) : <p>No tags</p>,
+			children: tags ? tags.map((tag: string) => <Tag key={tag}>{tag}</Tag>) : "No tags",
 		},
 		{
 			key: "publicationStatus",
@@ -35,33 +35,6 @@ const SampleMetadataDisplay: React.FC<SampleMetadataDisplayProps> = ({ name, des
 	return (
 		<Flex vertical gap="middle">
 			<Descriptions items={items} column={1} />
-
-			{/* <Row>
-				<Col span={4}>
-					<Text type="secondary">Name:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					<Text>{name}</Text>
-				</Col>
-			</Row>
-			<Row>
-				<Col span={4}>
-					<Text type="secondary">Description:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					<Text>{description ?? "No descrtipion"}</Text>
-				</Col>
-			</Row>
-			<Row>
-				<Col span={4}>
-					<Text type="secondary">Tags:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					{tags?.map((tag: string) => (
-						<Tag key={tag}>{tag}</Tag>
-					))}
-				</Col>
-			</Row> */}
 		</Flex>
 	);
 };

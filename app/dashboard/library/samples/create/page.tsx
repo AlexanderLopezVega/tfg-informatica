@@ -341,9 +341,9 @@ const CreateSampleForm: React.FC = () => {
 			publicationStatus: Number(metadata.publicationStatus),
 			modelID: modelID,
 		};
-		
+
 		console.log("Finished creation step", JSON.stringify(createSampleDTO));
-		
+
 		authFetch("http://localhost:5047/api/samples", {
 			method: "POST",
 			headers: {
@@ -372,7 +372,7 @@ const CreateSampleForm: React.FC = () => {
 	};
 	const onViewCreatedSample = () => {
 		const id = sampleID;
-		router.push(`/dashboard/sample?id=${id}`);
+		router.push(`/dashboard/library/samples/view?id=${id}`);
 	};
 
 	const steps = [
@@ -389,6 +389,7 @@ const CreateSampleForm: React.FC = () => {
 			content: <SummaryStep metadata={metadata} modelFile={modelFile} finish={onFinish} previousStep={previousStep} />,
 		},
 	];
+	const onBackButtonClicked = () => router.push("/dashboard/library/samples");
 
 	return (
 		<>
@@ -405,6 +406,9 @@ const CreateSampleForm: React.FC = () => {
 			) : (
 				<>
 					<Title>Create sample</Title>
+					<Space>
+						<Button onClick={onBackButtonClicked}>Back</Button>
+					</Space>
 					<Steps current={currentStep} items={steps} style={{ paddingTop: 20, paddingBottom: 20 }} />
 					<div style={{ paddingTop: 20, paddingBottom: 20 }}>{steps[currentStep].content}</div>
 				</>

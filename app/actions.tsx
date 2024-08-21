@@ -9,6 +9,7 @@ export const storeToken = async (token: string) => {
 		httpOnly: true,
 		sameSite: "strict",
 		secure: true,
+		maxAge: 60 * 30
 	});
 };
 

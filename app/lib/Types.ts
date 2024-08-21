@@ -1,3 +1,5 @@
+//  DTOs
+
 //  Used when authentication has been completed (see login/page.tsx)
 export interface AuthLoginDTO {
   token: string;
@@ -51,4 +53,9 @@ export interface CreateSampleDTO {
   tags?: string[],
   publicationStatus: number,
   modelID: string
+}
+
+// Other
+interface ProfileData {
+	username: string;
 }
