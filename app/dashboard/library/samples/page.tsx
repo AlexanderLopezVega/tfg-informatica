@@ -34,7 +34,7 @@ const columns: TableProps<TableEntry>["columns"] = [
 		title: "Description",
 		dataIndex: "description",
 		key: "description",
-		render: (text) => <Paragraph ellipsis={{rows: 2, expandable: false}}>{text}</Paragraph>
+		render: (text) => <Paragraph ellipsis={{ rows: 2, expandable: false }}>{text}</Paragraph>,
 	},
 ];
 

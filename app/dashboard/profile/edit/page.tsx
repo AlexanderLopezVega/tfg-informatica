@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingSpin } from "@/components/loadingSpin";
 import { UserDTO, UserProfileDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { Alert, Button, Flex, Form, Input, message, Space, Spin, Typography } from "antd";
@@ -8,19 +9,11 @@ import { ReactNode, useEffect, useState } from "react";
 
 const { Title } = Typography;
 
-type LoadingSpinProps = {
-	isLoading: boolean;
-	children: ReactNode;
-};
-type EditProfileFormFormType = {
-	username: string;
-};
 type EditProfileFormProps = {
 	data?: UserProfileDTO;
 	onFormFinished: (data: UserProfileDTO) => void;
 };
 
-const LoadingSpin: React.FC<LoadingSpinProps> = ({ isLoading, children }) => (isLoading ? <Spin>{children}</Spin> : <>{children}</>);
 const EditProfileForm: React.FC<EditProfileFormProps> = ({ data, onFormFinished }) => {
 	const [form] = Form.useForm();
 
@@ -32,7 +25,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ data, onFormFinished 
 
 	return (
 		<Form form={form} onFinish={onFormFinished} wrapperCol={{ span: 20 }} labelCol={{ span: 4 }}>
-			<Form.Item<EditProfileFormFormType> name="username" label="Username" rules={[{ required: true, message: "Please input username" }]}>
+			<Form.Item<UserProfileDTO> name="username" label="Username" rules={[{ required: true, message: "Please input username" }]}>
 				<Input />
 			</Form.Item>
 			<Form.Item wrapperCol={{ span: 20, offset: 4 }}>
@@ -134,7 +127,7 @@ const EditProfilePage: React.FC = () => {
 					<Button onClick={onBackButtonClicked}>Back</Button>
 				</Space>
 				<LoadingSpin isLoading={loading}>
-					{profileData ? <EditProfileForm data={profileData} onFormFinished={onFormFinished} /> : <Alert type="error" message="Could not load profile data" />}
+					{profileData ? <EditProfileForm data={profileData} onFormFinished={onFormFinished} /> : loading ? <></> : <Alert type="error" message="Could not load profile data" />}
 				</LoadingSpin>
 			</Flex>
 		</>

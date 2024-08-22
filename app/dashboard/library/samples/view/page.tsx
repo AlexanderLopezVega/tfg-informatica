@@ -52,6 +52,7 @@ const Sample: React.FC = () => {
 	}, [id]);
 
 	const onBackButtonClicked = () => router.push("/dashboard/library/samples");
+	const onEditSampleButtonClicked = () => router.push(`/dashboard/library/samples/edit?id=${id}`);
 	const onDeleteSampleButtonClicked = () => showModal();
 	const onSampleNameInputChange = (event: ChangeEvent<HTMLInputElement>) => metadata && setIsConfirmValid(event.target.value === metadata?.name);
 	const onConfirmDeleteSampleButtonClicked = () => {
@@ -91,7 +92,9 @@ const Sample: React.FC = () => {
 				<Flex gap="small">
 					<Button onClick={onBackButtonClicked}>Back</Button>
 					<Space style={{ marginLeft: "auto" }}>
-						<Button type="primary">Edit</Button>
+						<Button type="primary" onClick={onEditSampleButtonClicked}>
+							Edit
+						</Button>
 						<Button type="primary" danger onClick={onDeleteSampleButtonClicked}>
 							Delete
 						</Button>
