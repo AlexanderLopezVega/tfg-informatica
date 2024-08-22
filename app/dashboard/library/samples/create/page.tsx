@@ -4,7 +4,7 @@ import ModelRenderer from "@/components/modelRenderer";
 import SampleMetadataDisplay from "@/components/sampleMetadataDisplay";
 import { CreateSampleDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
-import { UploadOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, UploadOutlined } from "@ant-design/icons";
 import { Steps, Form, Input, Button, Space, Divider, Upload, Flex, Typography, Select, SelectProps, Tag, UploadProps, Spin, Result, Alert } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -407,7 +407,9 @@ const CreateSampleForm: React.FC = () => {
 				<>
 					<Title>Create sample</Title>
 					<Space>
-						<Button onClick={onBackButtonClicked}>Back</Button>
+						<Button onClick={onBackButtonClicked}>
+							<ArrowLeftOutlined />
+						</Button>
 					</Space>
 					<Steps current={currentStep} items={steps} style={{ paddingTop: 20, paddingBottom: 20 }} />
 					<div style={{ paddingTop: 20, paddingBottom: 20 }}>{steps[currentStep].content}</div>

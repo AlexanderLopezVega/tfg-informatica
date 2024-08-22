@@ -28,7 +28,7 @@ const columns: TableProps<TableEntry>["columns"] = [
 		title: "Name",
 		dataIndex: "name",
 		key: "name",
-		render: (text, record) => <Link href={`/dashboard/library/samples/view?id=${record.key}`}>{text}</Link>,
+		render: (text, record) => <Link href={`/dashboard/library/samples/view?id=${record.key}&localOnly=true`}>{text}</Link>,
 	},
 	{
 		title: "Description",
@@ -101,7 +101,7 @@ const Samples: React.FC = () => {
 				return response.json();
 			})
 			.then((data: UserDTO) => {
-				if (!data.userID) return;
+				if (!data) return;
 
 				setUserID(data.userID);
 				loadSamples(data.userID);

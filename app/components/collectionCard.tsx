@@ -25,7 +25,7 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
       sm={columnsSizes.sm}
       md={columnsSizes.md}
       lg={columnsSizes.lg}>
-      <Link href={`/dashboard/collection?id=${ID}`}>
+      <Link href={`/dashboard/library/collections/view?id=${ID}`}>
         <Card hoverable style={cardStyle}>
           <Flex vertical gap='middle'>
             <Title level={3}>{name}</Title>
@@ -34,7 +34,7 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
               [...sampleList].slice(0, 3).map((e, i) => {
                 return (
                   <React.Fragment
-                    key={`${name}-${description}-sample-${i}-${e.name}`}>
+                    key={`${name}-${description}-collection-${i}-${e.name}`}>
                     <Text code>{e.name}</Text>
                   </React.Fragment>
                 );

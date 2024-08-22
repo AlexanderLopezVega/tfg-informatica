@@ -18,10 +18,10 @@ export interface SampleDTO {
 }
 
 export interface SamplePreviewDTO {
-  ID: string,
+  id: string,
   name: string,
-  description: string,
-  imageUrl: string,
+  description?: string,
+  imageUrl?: string,
 }
 
 export interface CollectionPreviewDTO {
@@ -31,8 +31,21 @@ export interface CollectionPreviewDTO {
   sampleList: Partial<SamplePreviewDTO>[],
 }
 
-export interface CollectionDTO {
+export interface CreateCollectionDTO {
+  name: string,
+  description?: string,
+  tags?: string[],
+  publicationStatus: number,
+  samples?: string[]
+}
 
+export interface CreateCollectionResponseDTO {
+  id: number,
+}
+
+export interface CollectionDTO {
+  name: string,
+  description: string,
 }
 
 export interface UserDTO {
@@ -53,9 +66,4 @@ export interface CreateSampleDTO {
   tags?: string[],
   publicationStatus: number,
   modelID: string
-}
-
-// Other
-interface ProfileData {
-	username: string;
 }

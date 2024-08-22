@@ -6,11 +6,12 @@ import React, { useEffect, useState } from "react";
 import { CollectionCard } from "../../components/collectionCard";
 import { SampleCard } from "../../components/sampleCard";
 import { CollectionPreviewDTO, SamplePreviewDTO } from "../../lib/Types";
+import { authFetch } from "@/src/authFetch";
 
 const { Search } = Input;
 const { Title } = Typography;
 
-type cardData = Partial<SamplePreviewDTO | CollectionPreviewDTO> & { image?: string };
+type cardData = Partial<SamplePreviewDTO | CollectionPreviewDTO> & { imageUrl?: string };
 
 const SearchType = {
 	Samples: "Samples",
@@ -45,7 +46,7 @@ const CardsWithMemo = React.memo(
 						{
 							/// Check Card type here, easier
 							e.sampleList === undefined ? (
-								<SampleCard {...(e as SamplePreviewDTO)} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
+								<SampleCard imageUrl={e.image ?? e.imageURL} {...(e as SamplePreviewDTO)} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
 							) : (
 								<CollectionCard {...(e as CollectionPreviewDTO)} columnsSizes={columnsSizes} cardStyle={cardStyle} />
 							)
@@ -65,7 +66,7 @@ for (var i = 0; i < 43; ++i)
 	initialContent.push({
 		name: `Element ${i}`,
 		description: `description text`,
-		image: ``,
+		imageUrl: ``,
 	});
 
 const pageSize = 12;
@@ -82,19 +83,35 @@ const SearchPage: React.FC = () => {
 	const totalPages = Math.ceil(Math.max(elements.length / pageSize, 1));
 
 	useEffect(() => {
-		if (!searchQuery || searchQuery.length === 0) return;
+		if (!searchQuery) return;
 		setLoading(true);
 		const originalQuery = searchQuery;
 
-		fetch(
+		console.log(searchType.toLowerCase());
+		authFetch(
 			`http://localhost:5047/api/${searchType.toLowerCase()}/previews?` +
 				new URLSearchParams({
 					name: searchQuery,
-				})
+				}),
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
 		)
-			.then((response: Response) => response.json())
+			.then((response: Response) => {
+				if (!response.ok) {
+					console.error("Could not get previews");
+					return undefined;
+				}
+
+				return response.json();
+			})
 			.then((json) => {
 				if (searchQuery != originalQuery) return;
+
+				console.log(json);
 
 				loadData(json);
 			});
@@ -105,7 +122,7 @@ const SearchPage: React.FC = () => {
 		setCurrentSlice(getPagination(elements, 1));
 	}, [elements]);
 
-	const loadData = (data: SamplePreviewDTO[]) => {
+	const loadData = (data: SamplePreviewDTO[] | CollectionPreviewDTO[]) => {
 		setElements(data as any);
 		setLoading(false);
 	};
@@ -121,13 +138,13 @@ const SearchPage: React.FC = () => {
 					name: `Element CHANGED ${i}`,
 					description: `description CHANGED text`,
 					sampleList: [
-						{ name: "sex", ID: "1231231" },
-						{ name: "sex 2", ID: "1231231" },
-						{ name: "sex 3", ID: "1231231" },
-						{ name: "sex 4", ID: "1231231" },
+						{ name: "sex", id: "1231231" },
+						{ name: "sex 2", id: "1231231" },
+						{ name: "sex 3", id: "1231231" },
+						{ name: "sex 4", id: "1231231" },
 					],
 				});
-		else for (var i = 0; i < 43; ++i) initialContent.push({ name: `Element ${i}`, description: `description text`, image: `` });
+		else for (var i = 0; i < 43; ++i) initialContent.push({ name: `Element ${i}`, description: `description text`, imageUrl: `` });
 		setElements(initialContent);
 	};
 

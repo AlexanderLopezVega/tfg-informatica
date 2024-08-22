@@ -7,7 +7,7 @@ import ModelRenderer from "@/components/modelRenderer";
 import SampleMetadataDisplay from "@/components/sampleMetadataDisplay";
 import { Button, Flex, Input, message, Modal, Space, Typography } from "antd";
 import { useRouter } from "next/navigation";
-import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -90,7 +90,9 @@ const Sample: React.FC = () => {
 					{metadata?.name}
 				</Title>
 				<Flex gap="small">
-					<Button onClick={onBackButtonClicked}>Back</Button>
+					<Button onClick={onBackButtonClicked}>
+						<ArrowLeftOutlined />
+					</Button>
 					<Space style={{ marginLeft: "auto" }}>
 						<Button type="primary" onClick={onEditSampleButtonClicked}>
 							Edit

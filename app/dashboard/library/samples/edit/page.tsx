@@ -3,6 +3,7 @@
 import { LoadingSpin } from "@/components/loadingSpin";
 import { SampleDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Alert, Button, Form, Input, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -99,7 +100,9 @@ const EditSamplePage: React.FC = () => {
 			{contextHolder}
 			<Title>Edit sample</Title>
 
-			<Button onClick={onBackButtonClicked}>Back</Button>
+			<Button onClick={onBackButtonClicked}>
+				<ArrowLeftOutlined />
+			</Button>
 
 			<LoadingSpin isLoading={loading}>
 				{sampleData ? <EditSampleForm data={sampleData} onFormFinished={onFormFinished} /> : loading ? <></> : <Alert type="error" message="Could not load sample data" />}

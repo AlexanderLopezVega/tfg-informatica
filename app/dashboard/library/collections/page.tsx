@@ -27,7 +27,7 @@ const columns: TableProps<TableEntry>["columns"] = [
 		title: "Name",
 		dataIndex: "name",
 		key: "name",
-		render: (text, record) => <Link href={`/dashboard/collection?id=${record.key}`}>{text}</Link>,
+		render: (text, record) => <Link href={`/dashboard/library/collections/view?id=${record.key}`}>{text}</Link>,
 	},
 	{
 		title: "Description",
@@ -76,8 +76,8 @@ const Collections: React.FC = () => {
 			.finally(() => setLoading(false));
 	}, []);
 
-	const onCreateCollection = () => {
-		router.push("/dashboard/create-collection");
+	const onCreateCollectionButtonClicked = () => {
+		router.push("/dashboard/library/collections/create");
 	};
 	const onSelectedRowsChange = (newSelectedRowKeys: React.Key[]) => setSelectedRowKeys(newSelectedRowKeys);
 	const onRowSelected: TableRowSelection<TableEntry> = {
@@ -123,7 +123,7 @@ const Collections: React.FC = () => {
 			<Flex vertical={true} gap="middle">
 				<Title>Collections</Title>
 				<Space>
-					<Button type="primary" icon={<FileAddOutlined />} onClick={onCreateCollection}>
+					<Button type="primary" icon={<FileAddOutlined />} onClick={onCreateCollectionButtonClicked}>
 						Create
 					</Button>
 					<Button danger onClick={showModal} disabled={selectedRowKeys.length == 0}>

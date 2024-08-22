@@ -1,10 +1,14 @@
 "use client";
 
 import TableTransfer, { TableData, TableTransferProps } from "@/components/tableTransfer";
+import { CreateCollectionDTO, CreateCollectionResponseDTO, SamplePreviewDTO, UserDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Select, SelectProps, Table, TableColumnsType, Transfer, TransferProps, Typography } from "antd";
 import FormItem from "antd/es/form/FormItem";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Sampled3DTexture } from "three/examples/jsm/renderers/common/SampledTexture.js";
 
 const { Title } = Typography;
 
@@ -65,11 +69,59 @@ const columns: TableColumnsType<TableData> = [
 	},
 ];
 
-const CreateCollection: React.FC = () => {
+const CreateCollectionPage: React.FC = () => {
+	const router = useRouter();
 	const [form] = Form.useForm();
 	const [searchData, setSearchData] = useState<SelectProps["options"]>();
 	const [searchValue, setSearchValue] = useState<string>();
 	const [targetKeys, setTargetKeys] = useState<TransferProps["targetKeys"]>([]);
+	const [userID, setUserID] = useState<number>();
+	const [sampleData, setSampleData] = useState<SamplePreviewDTO[]>();
+
+	useEffect(() => {
+		authFetch("http://localhost:5047/api/user", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not retrieve user data");
+					return undefined;
+				}
+
+				return response.json();
+			})
+			.then((data: UserDTO) => {
+				if (!data) return;
+
+				setUserID(data.userID);
+			});
+	}, []);
+	useEffect(() => {
+		if (!userID) return;
+
+		authFetch(`http://localhost:5047/api/samples/previews?userID=${userID}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not get samples previews");
+					return undefined;
+				}
+
+				return response.json();
+			})
+			.then((data: SamplePreviewDTO[]) => {
+				if (!data) return;
+
+				setSampleData(data);
+			});
+	}, [userID]);
 
 	const handleSearch = (newValue: string) => {
 		if (newValue.length < 2) {
@@ -82,13 +134,54 @@ const CreateCollection: React.FC = () => {
 	const handleTransferChange: TableTransferProps["onChange"] = (nextTargetKeys) => {
 		setTargetKeys(nextTargetKeys);
 	};
-	const onSuccess = (data: any) => {console.log(data)};
+	const onBackButtonClicked = () => router.push("/dashboard/library/collections");
+	const onFormFinished = (data: CreateCollectionDTO) => {
+		data.publicationStatus = Number(data.publicationStatus);
+
+		authFetch("http://localhost:5047/api/collections", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not create collection");
+					return undefined;
+				}
+
+				return response.json();
+			})
+			.then((data: CreateCollectionResponseDTO) => {
+				if (!data) return;
+
+				const collectionID = data.id;
+
+				router.push(`/dashboard/library/collections/view?id=${collectionID}`);
+			});
+	};
 	const onFailure = () => {};
 
 	return (
 		<>
 			<Title>Create collection</Title>
-			<Form form={form} name="create-collection" labelCol={{ span: 4 }} wrapperCol={{ span: 20 }} initialValues={{ remember: true }} onFinish={onSuccess} onFinishFailed={onFailure} autoComplete="off">
+			<Button onClick={onBackButtonClicked}>
+				<ArrowLeftOutlined />
+			</Button>
+			<Form
+				form={form}
+				name="create-collection"
+				labelCol={{ span: 6 }}
+				wrapperCol={{ span: 18 }}
+				labelWrap
+				initialValues={{
+					remember: true,
+				}}
+				onFinish={onFormFinished}
+				onFinishFailed={onFailure}
+				autoComplete="off"
+			>
 				<FormItem name="name" label="Name" rules={[{ required: true, message: "Please input a name" }]}>
 					<Input />
 				</FormItem>
@@ -109,17 +202,30 @@ const CreateCollection: React.FC = () => {
 						options={(searchData || []).map((item) => ({ value: item.value, label: item.text }))}
 					/>
 				</Form.Item>
-				<Form.Item name="publicationStatus" label="Publication status" required>
+				<Form.Item name="publicationStatus" label="Publication status" required initialValue={"0"}>
 					<Select
 						options={[
 							{ value: "0", label: "Private" },
 							{ value: "1", label: "Public" },
 						]}
-						defaultValue={"0"}
 					/>
 				</Form.Item>
 				<Form.Item name="samples" label="Samples">
-					<TableTransfer leftColumns={columns} rightColumns={columns} dataSource={mockData} targetKeys={targetKeys} onChange={handleTransferChange} />
+					<TableTransfer
+						leftColumns={columns}
+						rightColumns={columns}
+						dataSource={
+							sampleData
+								? sampleData.map<TableData>((item, i) => ({
+										key: i.toString(),
+										name: item.name,
+										description: item.description ?? "No description provided",
+								  }))
+								: []
+						}
+						targetKeys={targetKeys}
+						onChange={handleTransferChange}
+					/>
 				</Form.Item>
 				<Form.Item wrapperCol={{ offset: 4 }}>
 					<Button type="primary" htmlType="submit">
@@ -131,4 +237,4 @@ const CreateCollection: React.FC = () => {
 	);
 };
 
-export default CreateCollection;
+export default CreateCollectionPage;
