@@ -44,7 +44,7 @@ const fetchTags = (value: string, callback: (data: { value: string; text: string
 	else callback([]);
 };
 
-const TagsFormItem: React.FC = () => {
+const TagsFormItem: React.FC<SelectProps> = (props) => {
 	const [searchData, setSearchData] = useState<SelectProps["options"]>();
 	const [searchValue, setSearchValue] = useState<string>();
 
@@ -57,6 +57,7 @@ const TagsFormItem: React.FC = () => {
 	return (
 		<Form.Item name="tags" label="Tags">
 			<Select
+				{...props}
 				mode="tags"
 				showSearch
 				value={searchValue}

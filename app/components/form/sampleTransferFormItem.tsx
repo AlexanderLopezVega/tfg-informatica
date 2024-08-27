@@ -15,21 +15,22 @@ const columns: TableColumnsType<TableData> = [
 	},
 ];
 
-type SampleTransferFormItemProps = {
+type SampleTransferFormItemProps = Partial<TableTransferProps> & {
 	data?: SamplePreviewDTO[];
 	targetKeys: TransferProps["targetKeys"];
 	onTableTransferChange: TableTransferProps["onChange"];
 };
 
-const SampleTransferFormItem: React.FC<SampleTransferFormItemProps> = ({ data, targetKeys, onTableTransferChange }) => {
-	data ??= [];
-
+const SampleTransferFormItem: React.FC<SampleTransferFormItemProps> = (props) => {
+	const { data, targetKeys, onTableTransferChange } = props;
+	const finalData = data ?? [];
 	return (
 		<Form.Item name="samplesID" label="Samples">
 			<TableTransfer
+				{...props}
 				leftColumns={columns}
 				rightColumns={columns}
-				dataSource={data.map<TableData>((item, i) => ({
+				dataSource={finalData.map<TableData>((item, i) => ({
 					key: i.toString(),
 					name: item.name,
 					description: <Paragraph ellipsis={{ rows: 2, expandable: false }}>{item.description ?? "No description provided"}</Paragraph>,

@@ -6,22 +6,51 @@ import PublicationStatusFormItem from "@/components/form/publicationStatusFormIt
 import SampleTransferFormItem from "@/components/form/sampleTransferFormItem";
 import TagsFormItem from "@/components/form/tagsFormItem";
 import { TableTransferProps } from "@/components/tableTransfer";
-import { CreateCollectionDTO, CreateCollectionResponseDTO, SamplePreviewDTO, UserDTO } from "@/lib/Types";
+import { CollectionDTO, CollectionMetadata, PatchCollectionDTO, SamplePreviewDTO, UserDTO, ViewCollectionDTO } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Button, Form, TransferProps, Typography } from "antd";
-import { useRouter } from "next/navigation";
+import { Button, Form, Skeleton, TransferProps, Typography } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const { Title } = Typography;
 
-const CreateCollectionPage: React.FC = () => {
+const EditCollectionPage: React.FC = () => {
 	const router = useRouter();
 	const [form] = Form.useForm();
 
 	const [targetKeys, setTargetKeys] = useState<TransferProps["targetKeys"]>([]);
 	const [userID, setUserID] = useState<number>();
 	const [sampleData, setSampleData] = useState<SamplePreviewDTO[]>();
+	const params = useSearchParams();
+	const [metadata, setMetadata] = useState<CollectionMetadata>();
+	const [loading, setLoading] = useState<boolean>(true);
+	const id = params.get("id");
+
+	
+	useEffect(() => {
+		setLoading(true);
+		authFetch(`http://localhost:5047/api/collections/${id}`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (!response.ok) {
+					console.error("Could not load collection data");
+					return undefined;
+				}
+
+				return response.json();
+			})
+			.then((data: ViewCollectionDTO) => {
+				if (!data) return;
+
+				setMetadata({ ...data });
+			})
+			.finally(() => setLoading(false));
+	}, [id]);
 
 	useEffect(() => {
 		authFetch("http://localhost:5047/api/user", {
@@ -70,9 +99,9 @@ const CreateCollectionPage: React.FC = () => {
 
 	const handleTransferChange: TableTransferProps["onChange"] = (nextTargetKeys) => setTargetKeys(nextTargetKeys);
 	const onBackButtonClicked = () => router.back();
-	const onFormFinished = (data: CreateCollectionDTO) => {
+	const onFormFinished = (data: CollectionDTO) => {
 		authFetch("http://localhost:5047/api/collections", {
-			method: "POST",
+			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -80,13 +109,13 @@ const CreateCollectionPage: React.FC = () => {
 		})
 			.then((response) => {
 				if (!response.ok) {
-					console.error("Could not create collection");
+					console.error("Could not edit collection");
 					return undefined;
 				}
 				
 				return response.json();
 			})
-			.then((data: CreateCollectionResponseDTO) => {				
+			.then((data: PatchCollectionDTO) => {				
 				if (!data) return;
 
 				router.push(`/dashboard/library/collections/view?id=${data.id}`);
@@ -94,19 +123,19 @@ const CreateCollectionPage: React.FC = () => {
 	};
 	const onFailure = () => {};
 
-	return (
+	return loading ? <Skeleton active /> : (
 		<>
-			<Title>Create collection</Title>
+			<Title>Edit collection</Title>
 			<Button onClick={onBackButtonClicked}>
 				<ArrowLeftOutlined />
 			</Button>
 			<Form
 				form={form}
-				name="create-collection"
+				name="edit-collection"
 				labelCol={{ span: 4 }}
 				wrapperCol={{ span: 20 }}
 				labelWrap
-				initialValues={{ publicationStatus: 0 }}
+				initialValues={metadata}
 				onFinish={onFormFinished}
 				onFinishFailed={onFailure}
 				autoComplete="off"
@@ -118,7 +147,7 @@ const CreateCollectionPage: React.FC = () => {
 				<SampleTransferFormItem data={sampleData} targetKeys={targetKeys} onTableTransferChange={handleTransferChange} />
 				<Form.Item wrapperCol={{ offset: 4 }}>
 					<Button type="primary" htmlType="submit">
-						Create
+						Save
 					</Button>
 				</Form.Item>
 			</Form>
@@ -126,4 +155,4 @@ const CreateCollectionPage: React.FC = () => {
 	);
 };
 
-export default CreateCollectionPage;
+export default EditCollectionPage;

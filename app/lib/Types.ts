@@ -79,6 +79,14 @@ export interface ViewCollectionDTO {
   sampleIDs: number[],
 }
 
+export interface CollectionDTO extends ViewCollectionDTO {
+
+}
+
+export interface PatchCollectionDTO extends ViewCollectionDTO {
+  
+}
+
 //  User
 export interface UserDTO {
   userID: number;
