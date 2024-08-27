@@ -73,6 +73,7 @@ const EditCollectionPage: React.FC = () => {
 				setUserID(data.userID);
 			});
 	}, []);
+	
 	useEffect(() => {
 		if (!userID) return;
 
