@@ -5,25 +5,43 @@ export interface AuthLoginDTO {
   token: string;
 }
 
+//  Sample
 export interface SampleDTO {
-  ID: string,
+  id: number,
   name: string,
   description: string,
   tags: string[],
-  publicationStatus: PublicationStatusDTO,
+  publicationStatus: number,
   modelPath: string,
   user: UserDTO,
-  collections: CollectionDTO[],
-
+  collections: ViewCollectionDTO[],
 }
 
 export interface SamplePreviewDTO {
-  id: string,
+  id: number,
   name: string,
   description?: string,
   imageUrl?: string,
 }
 
+export interface SampleMetadata {
+  name: string,
+  description?: string,
+  tags?: string[],
+  publicationStatus: number,
+}
+
+export interface CreateSampleDTO {
+  name: string,
+  description?: string,
+  tags?: string[],
+  publicationStatus: number,
+  modelID: string
+}
+
+export type PatchSampleDTO = Partial<SampleDTO>;
+
+//  Collection
 export interface CollectionPreviewDTO {
   ID: string,
   name: string,
@@ -36,18 +54,32 @@ export interface CreateCollectionDTO {
   description?: string,
   tags?: string[],
   publicationStatus: number,
-  samples?: string[]
+  samplesID?: number[]
+}
+
+export interface CollectionMetadata {
+  id: number,
+  name: string,
+  description?: string,
+  tags?: string[],
+  publicationStatus: number,
 }
 
 export interface CreateCollectionResponseDTO {
   id: number,
 }
 
-export interface CollectionDTO {
+export interface ViewCollectionDTO {
+  id: number,
   name: string,
   description: string,
+  tags?: string[],
+  publicationStatus: number,
+  userID: number,
+  sampleIDs: number[],
 }
 
+//  User
 export interface UserDTO {
   userID: number;
 }
@@ -58,12 +90,4 @@ export interface UserProfileDTO {
 
 export interface PublicationStatusDTO {
 
-}
-
-export interface CreateSampleDTO {
-  name: string,
-  description?: string,
-  tags?: string[],
-  publicationStatus: number,
-  modelID: string
 }

@@ -2,23 +2,17 @@
 
 import ModelRenderer from "@/components/modelRenderer";
 import SampleMetadataDisplay from "@/components/sampleMetadataDisplay";
-import { CreateSampleDTO } from "@/lib/Types";
+import SampleMetadataForm from "@/components/sampleMetadataForm";
+import { CreateSampleDTO, SampleMetadata } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { ArrowLeftOutlined, UploadOutlined } from "@ant-design/icons";
-import { Steps, Form, Input, Button, Space, Divider, Upload, Flex, Typography, Select, SelectProps, Tag, UploadProps, Spin, Result, Alert } from "antd";
+import { Steps, Button, Space, Divider, Upload, Flex, Typography, UploadProps, Spin, Result, Alert } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 const { Text, Title } = Typography;
-const { TextArea } = Input;
 const { Dragger } = Upload;
 
-interface Metadata {
-	name: string;
-	description?: string;
-	tags?: string[];
-	publicationStatus: number;
-}
 interface ModelDTO {
 	modelFile: string;
 }
@@ -29,7 +23,7 @@ interface JobStatus<T> {
 }
 
 interface MetadataStepProps {
-	metadata?: Metadata;
+	sampleMetadata?: SampleMetadata;
 	setMetadata: React.Dispatch<React.SetStateAction<any>>;
 	nextStep: () => void;
 }
@@ -41,113 +35,20 @@ interface ModelStepProps {
 	previousStep: () => void;
 }
 interface SummaryStepProps {
-	metadata?: Metadata;
+	sampleMetadata?: SampleMetadata;
 	modelFile?: string;
 	finish: () => void;
 	previousStep: () => void;
 }
 
-let timeout: ReturnType<typeof setTimeout> | undefined;
-let currentValue: string;
-
-const fetchTags = (value: string, callback: (data: { value: string; text: string }[]) => void) => {
-	if (timeout) {
-		clearTimeout(timeout);
-		timeout = undefined;
-	}
-
-	currentValue = value;
-
-	const searchTags = () => {
-		authFetch(`http://localhost:5047/api/tags/${value}`, {
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
-			.then((response) => response.json())
-			.then((responseData) => {
-				if (currentValue !== value) return;
-
-				console.log(responseData);
-
-				const data = responseData.map((item: any) => ({
-					value: item["value"],
-					text: item["value"],
-				}));
-
-				callback(data);
-			});
-	};
-
-	if (value) {
-		timeout = setTimeout(searchTags, 300);
-	} else {
-		callback([]);
-	}
-};
-
 //  Auxiliary components
-const MetadataStep: React.FC<MetadataStepProps> = ({ metadata, nextStep, setMetadata }) => {
-	const [form] = Form.useForm();
-	const [searchData, setSearchData] = useState<SelectProps["options"]>();
-	const [searchValue, setSearchValue] = useState<string>();
-
-	const handleSearch = (newValue: string) => {
-		if (newValue.length < 2) {
-			setSearchData([]);
-		} else fetchTags(newValue, setSearchData);
-	};
-	const handleChange = (newValue: string) => {
-		setSearchValue(newValue);
-	};
-	const onFinish = (values: Metadata) => {
+const MetadataStep: React.FC<MetadataStepProps> = ({ sampleMetadata, nextStep, setMetadata }) => {
+	const onFinish = (values: SampleMetadata) => {
 		setMetadata(values);
 		nextStep();
 	};
 
-	return (
-		<>
-			<Form name="metadata-form" form={form} onFinish={onFinish} initialValues={metadata} autoComplete="off" labelCol={{ span: 4 }} wrapperCol={{ span: 20 }}>
-				<Form.Item>
-					<Space>
-						<Button disabled={true}>Back</Button>
-						<Button type="primary" htmlType="submit">
-							Next
-						</Button>
-					</Space>
-				</Form.Item>
-				<Form.Item name="name" label="Name" rules={[{ required: true, message: "Name cannot be empty" }]}>
-					<Input />
-				</Form.Item>
-				<Form.Item name="description" label="Description">
-					<TextArea rows={5} />
-				</Form.Item>
-				<Form.Item name="tags" label="Tags">
-					<Select
-						mode="tags"
-						showSearch
-						value={searchValue}
-						placeholder="Enter tags here"
-						defaultActiveFirstOption={false}
-						filterOption={false}
-						onSearch={handleSearch}
-						onChange={handleChange}
-						notFoundContent={null}
-						options={(searchData || []).map((item) => ({ value: item.value, label: item.text }))}
-					/>
-				</Form.Item>
-				<Form.Item name="publicationStatus" label="Publication status" initialValue={"0"}>
-					<Select
-						options={[
-							{ value: "0", label: "Private" },
-							{ value: "1", label: "Public" },
-						]}
-					/>
-				</Form.Item>
-			</Form>
-		</>
-	);
+	return <SampleMetadataForm initialValues={sampleMetadata} onFinish={onFinish} />;
 };
 
 const ModelStep: React.FC<ModelStepProps> = ({ modelFile, setModelFile, setModelID, nextStep, previousStep }) => {
@@ -194,7 +95,7 @@ const ModelStep: React.FC<ModelStepProps> = ({ modelFile, setModelFile, setModel
 	const props: UploadProps = {
 		name: "file",
 		accept: "image/jpg, image/jpeg, image/png",
-		customRequest: ({ file, onSuccess }) => {
+		customRequest: ({ file }) => {
 			const formData = new FormData();
 
 			formData.append("ModelImage", file);
@@ -240,18 +141,7 @@ const ModelStep: React.FC<ModelStepProps> = ({ modelFile, setModelFile, setModel
 	);
 };
 
-const SummaryStep: React.FC<SummaryStepProps> = ({ metadata, modelFile, finish, previousStep }) => {
-	const tagsComponent = metadata?.tags?.map((tag: string) => <Tag key={tag}>{tag}</Tag>);
-
-	const capitalise = (string: string | undefined) => {
-		console.log(metadata);
-		if (!string) return undefined;
-
-		return string[0].toUpperCase() + string.slice(1);
-	};
-
-	console.log(metadata);
-
+const SummaryStep: React.FC<SummaryStepProps> = ({ sampleMetadata, modelFile, finish, previousStep }) => {
 	return (
 		<>
 			<Space>
@@ -265,40 +155,7 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ metadata, modelFile, finish, 
 				<Text strong>Metadata</Text>
 			</div>
 
-			{metadata ? <SampleMetadataDisplay {...metadata} /> : <Alert type="error" message="Couldn't load sample metadata" />}
-
-			{/* <Row>
-				<Col span={4}>
-					<Text type="secondary">Name:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					<Text>{metadata?.name ?? "No name"}</Text>
-				</Col>
-			</Row>
-			<Row>
-				<Col span={4}>
-					<Text type="secondary">Description:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					<Text>{metadata?.description ?? "No descrtipion"}</Text>
-				</Col>
-			</Row>
-			<Row>
-				<Col span={4}>
-					<Text type="secondary">Tags:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					{tagsComponent}
-				</Col>
-			</Row>
-			<Row>
-				<Col span={4}>
-					<Text type="secondary">Publication Status:</Text>
-				</Col>
-				<Col span={19} offset={1}>
-					<Text>{capitalise(metadata?.publicationStatus)}</Text>
-				</Col>
-			</Row> */}
+			{sampleMetadata ? <SampleMetadataDisplay {...sampleMetadata} /> : <Alert type="error" message="Couldn't load sample metadata" />}
 
 			<Divider />
 
@@ -314,7 +171,7 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ metadata, modelFile, finish, 
 //  Main component
 const CreateSampleForm: React.FC = () => {
 	const [currentStep, setCurrentStep] = useState(0);
-	const [metadata, setMetadata] = useState<Metadata>();
+	const [sampleMetadata, setSampleMetadata] = useState<SampleMetadata>();
 	const [modelFile, setModelFile] = useState<string>();
 	const [modelID, setModelID] = useState<string>();
 	const [sampleID, setSampleID] = useState<number>();
@@ -325,7 +182,7 @@ const CreateSampleForm: React.FC = () => {
 	const previousStep = () => setCurrentStep(currentStep - 1);
 
 	const onFinish = () => {
-		if (!metadata) {
+		if (!sampleMetadata) {
 			console.error("Metadata is undefined in onFinish!");
 			return;
 		}
@@ -335,10 +192,7 @@ const CreateSampleForm: React.FC = () => {
 		}
 
 		const createSampleDTO: CreateSampleDTO = {
-			name: metadata.name,
-			description: metadata.description,
-			tags: metadata.tags,
-			publicationStatus: Number(metadata.publicationStatus),
+			...sampleMetadata,
 			modelID: modelID,
 		};
 
@@ -378,7 +232,7 @@ const CreateSampleForm: React.FC = () => {
 	const steps = [
 		{
 			title: "Metadata",
-			content: <MetadataStep metadata={metadata} setMetadata={setMetadata} nextStep={nextStep} />,
+			content: <MetadataStep sampleMetadata={sampleMetadata} setMetadata={setSampleMetadata} nextStep={nextStep} />,
 		},
 		{
 			title: "3D Model",
@@ -386,7 +240,7 @@ const CreateSampleForm: React.FC = () => {
 		},
 		{
 			title: "Summary",
-			content: <SummaryStep metadata={metadata} modelFile={modelFile} finish={onFinish} previousStep={previousStep} />,
+			content: <SummaryStep sampleMetadata={sampleMetadata} modelFile={modelFile} finish={onFinish} previousStep={previousStep} />,
 		},
 	];
 	const onBackButtonClicked = () => router.push("/dashboard/library/samples");

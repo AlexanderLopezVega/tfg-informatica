@@ -1,66 +1,40 @@
 "use client";
 
-import { LoadingSpin } from "@/components/loadingSpin";
-import { SampleDTO } from "@/lib/Types";
+import { AsyncFeedback } from "@/components/asyncStateSpin";
+import SampleMetadataForm from "@/components/sampleMetadataForm";
+import { PatchSampleDTO, SampleDTO, SampleMetadata } from "@/lib/Types";
 import { authFetch } from "@/src/authFetch";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Alert, Button, Form, Input, message, Typography } from "antd";
+import { Alert, Button, message, Typography } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const { Title } = Typography;
 
-type EditSampleFormProps = {
-	data?: SampleDTO;
-	onFormFinished: (data: SampleDTO) => void;
-};
-
-const EditSampleForm: React.FC<EditSampleFormProps> = ({ data, onFormFinished }) => {
-	const [form] = Form.useForm();
-
-	useEffect(() => {
-		if (!data) return;
-
-		form.setFieldsValue(data);
-	}, [data]);
-
-	return (
-		<Form form={form} onFinish={onFormFinished} wrapperCol={{ span: 20 }} labelCol={{ span: 4 }}>
-			<Form.Item<SampleDTO> name="name" label="Name" rules={[{ required: true, message: "Please input the sample name" }]}>
-				<Input />
-			</Form.Item>
-			<Form.Item wrapperCol={{ span: 20, offset: 4 }}>
-				<Button type="primary" htmlType="submit">
-					Confirm changes
-				</Button>
-			</Form.Item>
-		</Form>
-	);
-};
-
 const EditSamplePage: React.FC = () => {
-	const [sampleData, setSampleData] = useState<SampleDTO>();
+	const [sampleMetadata, setSampleMetadata] = useState<SampleMetadata>();
 	const [loading, setLoading] = useState<boolean>(true);
 	const [messageApi, contextHolder] = message.useMessage();
+
 	const router = useRouter();
 	const params = useSearchParams();
 	const id = params.get("id");
 
 	const onBackButtonClicked = () => router.push(`/dashboard/library/samples/view?id=${id}`);
-	const onFormFinished = (data: SampleDTO) => {
+	const onFormFinished = (data: SampleMetadata) => {
 		if (id == null) {
 			console.error("Sample ID not found");
 			return;
 		}
 
-		data.ID = id;
+		const sampleDTO: PatchSampleDTO = { ...data, ID: id };
 
 		authFetch("http://localhost:5047/api/samples", {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(data),
+			body: JSON.stringify(sampleDTO),
 		}).then((response) => {
 			if (response.ok) {
 				messageApi.success("Sample updated", 5);
@@ -88,7 +62,7 @@ const EditSamplePage: React.FC = () => {
 			.then((data: SampleDTO) => {
 				if (!data) return;
 
-				setSampleData(data);
+				setSampleMetadata({ ...data });
 			})
 			.finally(() => {
 				setLoading(false);
@@ -104,9 +78,9 @@ const EditSamplePage: React.FC = () => {
 				<ArrowLeftOutlined />
 			</Button>
 
-			<LoadingSpin isLoading={loading}>
-				{sampleData ? <EditSampleForm data={sampleData} onFormFinished={onFormFinished} /> : loading ? <></> : <Alert type="error" message="Could not load sample data" />}
-			</LoadingSpin>
+			<AsyncFeedback loading={loading} success={sampleMetadata !== undefined} failedMessage="Could not load sample data">
+				{sampleMetadata && <SampleMetadataForm initialValues={sampleMetadata} onFinish={onFormFinished} />}
+			</AsyncFeedback>
 		</>
 	);
 };

@@ -1,4 +1,5 @@
 import { GetProp, Table, TableColumnsType, TableProps, Transfer, TransferProps } from "antd";
+import { ReactNode } from "react";
 
 type TransferItem = GetProp<TransferProps, "dataSource">[number];
 type TableRowSelection<T extends object> = TableProps<T>["rowSelection"];
@@ -6,7 +7,7 @@ type TableRowSelection<T extends object> = TableProps<T>["rowSelection"];
 export interface TableData {
 	key: string;
 	name: string;
-	description?: string;
+	description?: string | ReactNode;
 };
 
 export interface TableTransferProps extends TransferProps<TransferItem> {

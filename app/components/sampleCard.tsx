@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CSSProperties } from "react";
 import { SamplePreviewDTO } from "../lib/Types";
 
-const { Text, Title } = Typography;
+const { Paragraph, Text, Title } = Typography;
 
 type SampleCardProps = {
 	columnsSizes: any;
@@ -20,7 +20,7 @@ export const SampleCard: React.FC<SampleCardProps> = ({ name, description, colum
 						{/* <Image alt={`Image of ${name}`} src={imageUrl} fallback={imageFallback} preview={false} /> */}
 						<Image alt={`Image of ${name}`} src={imageUrl} fallback={imageFallback} preview={false} />
 						<Title level={5}>{name}</Title>
-						<Text>{description}</Text>
+						<Paragraph ellipsis={{ rows: 2, expandable: false }}>{description}</Paragraph>
 					</Flex>
 				</Card>
 			</Link>

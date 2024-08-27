@@ -123,7 +123,7 @@ const SearchPage: React.FC = () => {
 	}, [elements]);
 
 	const loadData = (data: SamplePreviewDTO[] | CollectionPreviewDTO[]) => {
-		setElements(data as any);
+		setElements(data as any ?? []);
 		setLoading(false);
 	};
 

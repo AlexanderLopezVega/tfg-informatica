@@ -8,15 +8,10 @@ import { FileAddOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TableRowSelection } from "antd/es/table/interface";
-import { UserDTO } from "@/lib/Types";
+import { SamplePreviewDTO, UserDTO } from "@/lib/Types";
 
 const { Title, Paragraph } = Typography;
 
-interface SamplePreview {
-	id: number;
-	name: string;
-	description: string;
-}
 interface TableEntry {
 	key: number;
 	name: string;
@@ -69,12 +64,12 @@ const Samples: React.FC = () => {
 
 				return response.json();
 			})
-			.then((data: SamplePreview[]) => {
+			.then((data: SamplePreviewDTO[]) => {
 				if (data === undefined) return;
 
 				setTableData(
 					data.map(
-						(value: SamplePreview): TableEntry => ({
+						(value: SamplePreviewDTO): TableEntry => ({
 							key: value.id,
 							name: value.name,
 							description: value.description ?? "No description provided",
@@ -118,7 +113,7 @@ const Samples: React.FC = () => {
 	};
 	const showModal = () => setModalOpen(true);
 	const hideModal = () => setModalOpen(false);
-	const onDeleteModalConfirm = () => {
+	const onConfirmDeleteSamplesButtonClicked = () => {
 		setModalConfirmLoading(true);
 
 		const sampleIDs: number[] = selectedRowKeys.map((key) => parseInt(key.toString()));
@@ -130,27 +125,25 @@ const Samples: React.FC = () => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(body),
-		})
-			.then((response) => {
-				if (!response.ok) {
-					console.error("Could not delete samples");
-					return undefined;
-				}
+		}).then((response) => {
+			if (!response.ok) {
+				console.error("Could not delete samples");
+				return undefined;
+			}
 
-				messageApi.open({
-					type: "success",
-					content: "Samples successfully deleted",
-				});
-				setModalConfirmLoading(false);
-				hideModal();
-				setSelectedRowKeys([]);
-				loadSamples(userID);
-			})
-			.catch((reason) => console.log(reason));
+			messageApi.open({
+				type: "success",
+				content: "Samples successfully deleted",
+			});
+			setModalConfirmLoading(false);
+			hideModal();
+			setSelectedRowKeys([]);
+			loadSamples(userID);
+		});
 	};
-	const onDeleteModalCancel = () => hideModal();
+	const onCancelDeleteSamplesButtonClicked = () => hideModal();
 
-	if (!loading && !tableData) return <Alert message="An error ocurred while loading the samples"></Alert>;
+	if (!loading && !tableData) return <Alert message="An error ocurred while loading the samples" />;
 
 	return (
 		<>
@@ -170,14 +163,14 @@ const Samples: React.FC = () => {
 			<Modal
 				open={modalOpen}
 				title="Delete samples"
-				onOk={onDeleteModalConfirm}
-				onCancel={onDeleteModalCancel}
+				onOk={onConfirmDeleteSamplesButtonClicked}
+				onCancel={onCancelDeleteSamplesButtonClicked}
 				confirmLoading={modalConfirmLoading}
 				footer={[
-					<Button key="cancel" onClick={onDeleteModalCancel}>
+					<Button key="cancel" onClick={onCancelDeleteSamplesButtonClicked}>
 						Cancel
 					</Button>,
-					<Button key="delete" onClick={onDeleteModalConfirm} type="primary" danger>
+					<Button key="delete" onClick={onConfirmDeleteSamplesButtonClicked} type="primary" danger>
 						Delete
 					</Button>,
 				]}

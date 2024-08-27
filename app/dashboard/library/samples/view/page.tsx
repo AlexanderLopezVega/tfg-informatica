@@ -8,15 +8,10 @@ import SampleMetadataDisplay from "@/components/sampleMetadataDisplay";
 import { Button, Flex, Input, message, Modal, Space, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { ArrowLeftOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { SampleDTO, SampleMetadata } from "@/lib/Types";
 
 const { Title } = Typography;
 
-interface Metadata {
-	name: string;
-	description?: string;
-	tags?: string[];
-	publicationStatus: number;
-}
 interface ModelDTO {
 	modelFile: string;
 }
@@ -31,10 +26,10 @@ const fetchInit = {
 const Sample: React.FC = () => {
 	const router = useRouter();
 	const [messageApi, contextHolder] = message.useMessage();
-	const [metadata, setMetadata] = useState<Metadata>();
+	const [metadata, setMetadata] = useState<SampleMetadata>();
 	const [model, setModel] = useState<ModelDTO | undefined>(undefined);
-	const [isConfirmValid, setIsConfirmValid] = useState<boolean>(false);
 	const [modalOpen, setModalOpen] = useState<boolean>(false);
+	const [modalConfirmLoading, setModalConfirmLoading] = useState(false);
 
 	const params = useSearchParams();
 	const id = params.get("id");
@@ -42,23 +37,44 @@ const Sample: React.FC = () => {
 	useEffect(() => {
 		//	Fetch metadata
 		authFetch(`http://localhost:5047/api/samples/${id}`, fetchInit)
-			.then((data) => data.json())
-			.then((data: Metadata) => setMetadata(data));
+			.then((data) => {
+				if (!data.ok) {
+					console.error("Could not fetch sample metadata");
+					return undefined;
+				}
+
+				return data.json();
+			})
+			.then((data: SampleDTO) => {
+				if (!data) return;
+
+				setMetadata({ ...data });
+			});
 
 		//	Fetch 3D model
 		authFetch(`http://localhost:5047/api/models/${id}`, fetchInit)
-			.then((data) => data.json())
-			.then((model: ModelDTO) => setModel(model));
+			.then((data) => {
+				if (!data.ok) {
+					console.error("Could not fetch 3D model");
+					return undefined;
+				}
+				return data.json();
+			})
+			.then((model: ModelDTO) => {
+				if (!model) return;
+
+				setModel(model);
+			});
 	}, [id]);
 
-	const onBackButtonClicked = () => router.push("/dashboard/library/samples");
+	const onBackButtonClicked = () => router.back();
 	const onEditSampleButtonClicked = () => router.push(`/dashboard/library/samples/edit?id=${id}`);
 	const onDeleteSampleButtonClicked = () => showModal();
-	const onSampleNameInputChange = (event: ChangeEvent<HTMLInputElement>) => metadata && setIsConfirmValid(event.target.value === metadata?.name);
 	const onConfirmDeleteSampleButtonClicked = () => {
-		const body = JSON.stringify({ sampleIDs: [Number(id)] });
+		setModalConfirmLoading(true);
 
-		console.log(body);
+		//	TODO: Change to DTO
+		const body = JSON.stringify({ sampleIDs: [Number(id)] });
 
 		authFetch("http://localhost:5047/api/samples", {
 			method: "DELETE",
@@ -66,18 +82,18 @@ const Sample: React.FC = () => {
 				"Content-Type": "application/json",
 			},
 			body: body,
-		})
-			.then((response) => {
-				if (!response.ok) {
-					console.error("Could not delete sample");
-					return;
-				}
+		}).then((response) => {
+			if (!response.ok) {
+				console.error("Could not delete sample");
+				return;
+			}
 
-				messageApi.success("Sample deleted correctly", 5);
-				router.push("/dashboard/library/samples");
-			})
-			.catch();
+			setModalConfirmLoading(true);
+			messageApi.success("Sample deleted correctly", 5);
+			router.push("/dashboard/library/samples");
+		});
 	};
+	const onCancelDeleteSampleButtonClicked = () => hideModal();
 
 	const showModal = () => setModalOpen(true);
 	const hideModal = () => setModalOpen(false);
@@ -89,10 +105,12 @@ const Sample: React.FC = () => {
 				<Title level={1} style={{ margin: 0 }}>
 					{metadata?.name}
 				</Title>
+				
 				<Flex gap="small">
 					<Button onClick={onBackButtonClicked}>
 						<ArrowLeftOutlined />
 					</Button>
+
 					<Space style={{ marginLeft: "auto" }}>
 						<Button type="primary" onClick={onEditSampleButtonClicked}>
 							Edit
@@ -106,30 +124,21 @@ const Sample: React.FC = () => {
 				{model && <ModelRenderer model={model.modelFile} />}
 				{metadata && (
 					<Modal
-						title={
-							<Space>
-								<ExclamationCircleOutlined style={{ color: "red" }} />
-								<p style={{ margin: 0 }}>Delete sample</p>
-							</Space>
-						}
 						open={modalOpen}
-						closable
-						centered
-						onCancel={hideModal}
-						footer={
-							<Space>
-								<Button onClick={hideModal}>Cancel</Button>
-								<Button danger type="primary" disabled={!isConfirmValid} onClick={onConfirmDeleteSampleButtonClicked}>
-									Delete sample
-								</Button>
-							</Space>
-						}
+						title="Delete samples"
+						onOk={onConfirmDeleteSampleButtonClicked}
+						onCancel={onCancelDeleteSampleButtonClicked}
+						confirmLoading={modalConfirmLoading}
+						footer={[
+							<Button key="cancel" onClick={onCancelDeleteSampleButtonClicked}>
+								Cancel
+							</Button>,
+							<Button key="delete" onClick={onConfirmDeleteSampleButtonClicked} type="primary" danger>
+								Delete
+							</Button>,
+						]}
 					>
-						<Flex vertical style={{ padding: 20 }}>
-							<p>Are you sure you want to delete the sample {metadata.name}? This process is irreversible</p>
-							<p>Write the sample name here to make sure</p>
-							<Input placeholder={metadata.name} onChange={onSampleNameInputChange} />
-						</Flex>
+						Are you sure you wish to delete {metadata.name}?
 					</Modal>
 				)}
 			</Flex>
