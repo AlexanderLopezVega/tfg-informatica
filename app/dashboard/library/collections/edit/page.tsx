@@ -108,21 +108,17 @@ const EditCollectionPage: React.FC = () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(data),
+			body: JSON.stringify({ ...data, ID: id, sampleIDs: targetKeys}),
 		})
 			.then((response) => {
 				if (!response.ok) {
 					console.error("Could not edit collection");
 					return undefined;
+				} else {
+				router.push(`/dashboard/library/collections/view?id=${id}`);
+					
 				}
-				
-				return response.json();
 			})
-			.then((data: PatchCollectionDTO) => {				
-				if (!data) return;
-
-				router.push(`/dashboard/library/collections/view?id=${data.id}`);
-			});
 	};
 	const onFailure = () => {};
 	return loading ? <Skeleton active /> : (
