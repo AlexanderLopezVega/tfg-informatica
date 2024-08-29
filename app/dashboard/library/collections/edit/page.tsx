@@ -96,6 +96,7 @@ const EditCollectionPage: React.FC = () => {
 
 				const samples = metadata.sampleIDs?.map(e => "" + data.findIndex(sample => +sample.id === +e)).filter(e => e as any !== "-1");				
 				setTargetKeys(samples as any);
+				setSampleData(data);
 			});
 	}, [userID, metadata]);
 
