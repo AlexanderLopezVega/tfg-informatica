@@ -108,7 +108,7 @@ const EditCollectionPage: React.FC = () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ ...data, ID: id, sampleIDs: targetKeys}),
+			body: JSON.stringify({ ...data, ID: id, sampleIDs: sampleData?.filter((e, i) => targetKeys?.includes("" + i) ).map(e => e.id)}),
 		})
 			.then((response) => {
 				if (!response.ok) {
