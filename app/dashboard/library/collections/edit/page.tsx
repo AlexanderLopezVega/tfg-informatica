@@ -75,7 +75,7 @@ const EditCollectionPage: React.FC = () => {
 	}, []);
 	
 	useEffect(() => {
-		if (!userID) return;
+		if (!userID || !metadata) return;
 
 		authFetch(`http://localhost:5047/api/samples/previews?userID=${userID}`, {
 			method: "GET",
@@ -94,9 +94,10 @@ const EditCollectionPage: React.FC = () => {
 			.then((data: SamplePreviewDTO[]) => {
 				if (!data) return;
 
-				setSampleData(data);
+				const samples = metadata.sampleIDs?.map(e => "" + data.findIndex(sample => +sample.id === +e)).filter(e => e as any !== "-1");				
+				setTargetKeys(samples as any);
 			});
-	}, [userID]);
+	}, [userID, metadata]);
 
 	const handleTransferChange: TableTransferProps["onChange"] = (nextTargetKeys) => setTargetKeys(nextTargetKeys);
 	const onBackButtonClicked = () => router.back();
@@ -123,7 +124,6 @@ const EditCollectionPage: React.FC = () => {
 			});
 	};
 	const onFailure = () => {};
-
 	return loading ? <Skeleton active /> : (
 		<>
 			<Title>Edit collection</Title>

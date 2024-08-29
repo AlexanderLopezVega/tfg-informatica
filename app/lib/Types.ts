@@ -63,6 +63,7 @@ export interface CollectionMetadata {
   description?: string,
   tags?: string[],
   publicationStatus: number,
+  sampleIDs?: number[]  
 }
 
 export interface CreateCollectionResponseDTO {
