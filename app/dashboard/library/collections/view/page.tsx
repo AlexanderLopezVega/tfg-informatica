@@ -132,12 +132,11 @@ const ViewCollectionPage: React.FC = () => {
 		//	TODO: Change to DTO
 		const body = JSON.stringify({ sampleIDs: [Number(id)] });
 
-		authFetch("http://localhost:5047/api/collections", {
+		authFetch(`http://localhost:5047/api/collections/${id}`, {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: body,
 		}).then((response) => {
 			if (!response.ok) {
 				console.error("Could not delete collection");
