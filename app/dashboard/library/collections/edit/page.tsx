@@ -103,6 +103,7 @@ const EditCollectionPage: React.FC = () => {
 	const handleTransferChange: TableTransferProps["onChange"] = (nextTargetKeys) => setTargetKeys(nextTargetKeys);
 	const onBackButtonClicked = () => router.back();
 	const onFormFinished = (data: CollectionDTO) => {
+		delete (data as any).samplesID;
 		authFetch("http://localhost:5047/api/collections", {
 			method: "PATCH",
 			headers: {
