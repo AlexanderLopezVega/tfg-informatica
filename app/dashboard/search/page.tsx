@@ -1,12 +1,12 @@
 "use client";
 
+import { authFetch } from "@/src/authFetch";
 import { Divider, Flex, Input, Pagination, Radio, Row, Spin, Typography } from "antd";
 import { RadioChangeEvent } from "antd/lib";
 import React, { useEffect, useState } from "react";
 import { CollectionCard } from "../../components/collectionCard";
 import { SampleCard } from "../../components/sampleCard";
 import { CollectionPreviewDTO, SamplePreviewDTO } from "../../lib/Types";
-import { authFetch } from "@/src/authFetch";
 
 const { Search } = Input;
 const { Title } = Typography;
@@ -61,33 +61,25 @@ const CardsWithMemo = React.memo(
 	}
 );
 
-const initialContent: cardData[] = [];
-for (var i = 0; i < 43; ++i)
-	initialContent.push({
-		name: `Element ${i}`,
-		description: `description text`,
-		imageUrl: ``,
-	});
-
 const pageSize = 12;
 
 const SearchPage: React.FC = () => {
 	const getPagination = (elements: any[], newPage: number) => elements.slice(pageSize * (newPage - 1), pageSize * newPage);
 
 	const [searchType, setSearchType] = useState<SearchTypeType>(SearchType.Samples);
-	const [elements, setElements] = useState<cardData[]>(initialContent);
-	const [searchQuery, setSearchQuery] = useState<string>();
+	const [elements, setElements] = useState<cardData[]>([]);
+	const [searchQuery, setSearchQuery] = useState<string>("");
+	const [lastSearchQuery, setLastSearchQuery] = useState<string | undefined>(undefined);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [currentSlice, setCurrentSlice] = useState<cardData[]>(getPagination(initialContent, 1));
+	const [currentSlice, setCurrentSlice] = useState<cardData[]>(getPagination(elements, 1));
 	const totalPages = Math.ceil(Math.max(elements.length / pageSize, 1));
 
 	useEffect(() => {
-		if (!searchQuery) return;
+		if (searchQuery === lastSearchQuery) return;
 		setLoading(true);
 		const originalQuery = searchQuery;
 
-		console.log(searchType.toLowerCase());
 		authFetch(
 			`http://localhost:5047/api/${searchType.toLowerCase()}/previews?` +
 				new URLSearchParams({
@@ -114,6 +106,7 @@ const SearchPage: React.FC = () => {
 				console.log(json);
 
 				loadData(json);
+				setLastSearchQuery(searchQuery);
 			});
 	}, [searchQuery, searchType]);
 
@@ -131,21 +124,9 @@ const SearchPage: React.FC = () => {
 		if (searchType === value) return;
 		setSearchType(value);
 		const initialContent: cardData[] = [];
-		///TODO REMEMBER TO REMOVE THIS
-		if (value === SearchType.Collections)
-			for (var i = 0; i < 120; ++i)
-				initialContent.push({
-					name: `Element CHANGED ${i}`,
-					description: `description CHANGED text`,
-					sampleList: [
-						{ name: "sex", id: "1231231" },
-						{ name: "sex 2", id: "1231231" },
-						{ name: "sex 3", id: "1231231" },
-						{ name: "sex 4", id: "1231231" },
-					],
-				});
-		else for (var i = 0; i < 43; ++i) initialContent.push({ name: `Element ${i}`, description: `description text`, imageUrl: `` });
 		setElements(initialContent);
+		setSearchQuery("");
+		setLastSearchQuery(undefined);
 	};
 
 	const onSearch = (value: string) => {
