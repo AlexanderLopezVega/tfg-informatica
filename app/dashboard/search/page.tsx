@@ -35,17 +35,18 @@ const cardStyle: React.CSSProperties = {
 	height: "100%",
 };
 
-type cardsWithMemoProps = { elements: cardData[] };
+type cardsWithMemoProps = { elements: cardData[], searchType: SearchTypeType };
 
 const CardsWithMemo = React.memo(
-	({ elements }: cardsWithMemoProps) => (
+	({ elements, searchType }: cardsWithMemoProps) => (
 		<Row gutter={[15, 15]}>
 			{elements?.map((e: any, i: number) => {
+				console.log(e);
 				return (
 					<React.Fragment key={i}>
 						{
 							/// Check Card type here, easier
-							e.sampleList === undefined ? (
+							searchType === SearchType.Samples ? (
 								<SampleCard imageUrl={e.image ?? e.imageURL} {...(e as SamplePreviewDTO)} columnsSizes={columnsSizes} cardStyle={cardStyle} imageFallback={imageFallback} />
 							) : (
 								<CollectionCard {...(e as CollectionPreviewDTO)} columnsSizes={columnsSizes} cardStyle={cardStyle} />
@@ -167,7 +168,7 @@ const SearchPage: React.FC = () => {
 				<Spin size="large" tip="Loading..." />
 			) : (
 				<>
-					<CardsWithMemo elements={currentSlice} />
+					<CardsWithMemo elements={currentSlice} searchType={searchType} />
 				</>
 			)}
 		</>

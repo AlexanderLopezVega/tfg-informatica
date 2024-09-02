@@ -10,10 +10,10 @@ type CollectionCardProps = {
 	cardStyle: CSSProperties;
 } & Partial<CollectionPreviewDTO>;
 
-export const CollectionCard: React.FC<CollectionCardProps> = ({ name, description, columnsSizes, cardStyle, sampleList, ID }) => {
+export const CollectionCard: React.FC<CollectionCardProps> = ({ name, description, columnsSizes, cardStyle, sampleList, id }) => {
 	return (
 		<Col xs={columnsSizes.xs} sm={columnsSizes.sm} md={columnsSizes.md} lg={columnsSizes.lg}>
-			<Link href={`/dashboard/library/collections/view?id=${ID}`}>
+			<Link href={`/dashboard/library/collections/view?id=${id}`}>
 				<Card hoverable style={cardStyle}>
 					<Flex vertical gap="middle">
 						<Title level={3}>{name}</Title>

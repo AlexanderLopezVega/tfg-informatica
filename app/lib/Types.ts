@@ -43,7 +43,7 @@ export type PatchSampleDTO = Partial<SampleDTO>;
 
 //  Collection
 export interface CollectionPreviewDTO {
-  ID: string,
+  id: string,
   name: string,
   description: string,
   sampleList: Partial<SamplePreviewDTO>[],
